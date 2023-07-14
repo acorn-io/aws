@@ -1,0 +1,28 @@
+name: Publish Acorn service image
+
+on:
+  push:
+    tags:
+      - "**/v[0-9]*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - uses: acorn-io/actions-setup@v2
+        with:
+          acorn-version: "main"
+      - uses: acorn-io/actions-login@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: set image and tag
+        run: ./scripts/setup_tags.sh
+      - name: Build and Publish
+        run: |
+          acorn build --platform linux/amd64 --platform linux/arm64 --push -t ghcr.io/acorn-io/aws/${IMAGE}:${TAG} ./${IMAGE}
+          acorn tag ghcr.io/acorn-io/aws/${IMAGE}:${TAG} ghcr.io/acorn-io/aws/${IMAGE}:latest
+          acorn push ghcr.io/acorn-io/aws/${IMAGE}:latest

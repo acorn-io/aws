@@ -1,0 +1,35 @@
+services: context: {
+	default: true
+	generated: job: "context-generator"
+}
+
+jobs: "context-generator": {
+	build: "."
+	files: "/app/config.json": std.toJSON({
+		accountID: "@{secrets.aws-config.account-id}"
+		vpcID:     "@{secrets.aws-config.vpc-id}"
+		region:    "@{secrets.aws-config.aws-region}"
+	})
+	permissions: rules: [
+		{
+			apiGroup: "aws.acorn.io"
+			verbs: [
+				"ec2:DescribeAvailabilityZones",
+				"ec2:DescribeVpcs",
+				"ec2:DescribeSubnets",
+				"ec2:DescribeRouteTables",
+			]
+			resources: ["*"]
+		},
+	]
+}
+
+secrets: "aws-config": {
+	external: "context://aws"
+	type:     "opaque"
+	data: {
+		"account-id": ""
+		"vpc-id":     ""
+		"aws-region": ""
+	}
+}
