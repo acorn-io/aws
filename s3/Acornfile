@@ -1,0 +1,52 @@
+args: {
+	// Name to assign bucket during creation
+	bucketName: "MyBucket"
+	// Version the objects in the bucket
+	versioned: true
+	// Make Public
+	makePublic: false
+	// Key value pairs to apply to all resources
+	tags: {}
+}
+
+services: {
+	"s3-bucket": generated: job: "apply"
+	"cdk-context": build: "../utils/cdk"
+}
+
+jobs: apply: {
+	build: {
+		context:    "."
+		dockerfile: "Dockerfile"
+		additionalContexts: common: "../libs"
+	}
+	files: {
+		"/app/cdk.context.json": "@{services.cdk-context.data.cdkContext}"
+		"/app/config.json":      std.toJSON(args)
+	}
+	env: {
+		CDK_DEFAULT_ACCOUNT: "@{services.cdk-context.data.accountID}"
+		CDK_DEFAULT_REGION:  "@{services.cdk-context.data.region}"
+		VPC_ID:              "@{services.cdk-context.data.vpcID}"
+		ACORN_ACCOUNT:       "@{acorn.account}"
+		ACORN_NAME:          "@{acorn.name}"
+		ACORN_PROJECT:       "@{acorn.project}"
+	}
+	events: ["create", "update", "delete"]
+	permissions: rules: [{
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"cloudformation:DescribeStacks",
+			"cloudformation:CreateChangeSet",
+			"cloudformation:DescribeStackEvents",
+			"cloudformation:DescribeChangeSet",
+			"cloudformation:ExecuteChangeSet",
+			"cloudformation:PreviewStackUpdate",
+			"cloudformation:UpdateStack",
+			"cloudformation:GetTemplateSummary",
+			"cloudformation:DeleteStack",
+			"s3:*",
+		]
+		resources: ["*"]
+	}]
+}
