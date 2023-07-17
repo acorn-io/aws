@@ -1,0 +1,98 @@
+args: {
+	// Name of the root/admin user. Default is admin.
+	adminUsername: "admin"
+	// Name of an additional user to create. This user will have complete access to the database.
+	// If left blank, no additional user will be created.
+	username: ""
+	// Name of the database instance. Default is instance.
+	dbName: "instance"
+	// Deletion protection, you must set to false in order for the RDS db to be deleted. Default is false
+	deletionProtection: false
+	// Key value pairs of tags to apply to the RDS cluster and all other resources.
+	tags: {}
+}
+
+services: rds: {
+	default: true
+	generated: job: "apply"
+}
+
+services: "cdk-context": build: "../../utils/cdk"
+
+jobs: apply: {
+	build: {
+		context: ".."
+		buildArgs: MAIN:            "serverless"
+		additionalContexts: common: "../../libs"
+	}
+	files: {
+		"/app/cdk.context.json": "@{services.cdk-context.data.cdkContext}"
+		"/app/config.json":      std.toJSON(args)
+	}
+	env: {
+		CDK_DEFAULT_ACCOUNT: "@{services.cdk-context.data.accountID}"
+		CDK_DEFAULT_REGION:  "@{services.cdk-context.data.region}"
+		VPC_ID:              "@{services.cdk-context.data.vpcID}"
+		ACORN_ACCOUNT:       "@{acorn.account}"
+		ACORN_NAME:          "@{acorn.name}"
+		ACORN_PROJECT:       "@{acorn.project}"
+		DB_NAME:             args.dbName
+		DB_USERNAME:         args.username
+	}
+	permissions: rules: [{
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"cloudformation:DescribeStacks",
+			"cloudformation:CreateChangeSet",
+			"cloudformation:DescribeStackEvents",
+			"cloudformation:DescribeChangeSet",
+			"cloudformation:ExecuteChangeSet",
+			"cloudformation:PreviewStackUpdate",
+			"cloudformation:UpdateStack",
+			"cloudformation:GetTemplateSummary",
+			"cloudformation:DeleteStack",
+			"ssm:GetParameters",
+			"secretsmanager:*",
+			"ec2:*",
+			"rds:*",
+		]
+		resources: ["*"]
+	}, {
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"iam:CreateServiceLinkedRole",
+		]
+		resources: ["arn:aws:iam::*:role/aws-service-role/rds.amazonaws.com/AWSServiceRoleForRDS"]
+	}]
+	events: ["create", "update", "delete"]
+}
+
+if args.username != "" {
+	jobs: "create-user": {
+		build: images.user.containerBuild
+		dependsOn: ["apply"]
+		env: {
+			MYSQL_ADMIN_USER:     args.adminUsername
+			MYSQL_ADMIN_PASSWORD: "@{secrets.admin.password}"
+			MYSQL_USER:           args.username
+			MYSQL_PASSWORD:       "@{secrets.user.password}"
+			MYSQL_HOST:           "@{service.rds.address}"
+			MYSQL_DATABASE:       args.dbName
+		}
+	}
+
+	secrets: user: {
+		type: "basic"
+		data: username: args.username
+	}
+}
+
+images: user: containerBuild: {
+	context: ".."
+	target:  "user"
+}
+
+secrets: admin: {
+	type: "generated"
+	params: job: "apply"
+}
