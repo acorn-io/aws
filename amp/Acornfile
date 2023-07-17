@@ -1,0 +1,50 @@
+args: {
+	workspaceName: ""
+	tags: {}
+}
+
+services: amp: {
+	default: true
+	generated: job: "apply"
+}
+
+services: "cdk-context": build: "../utils/cdk"
+
+jobs: apply: {
+	build: {
+		context: "."
+		additionalContexts: common: "../libs"
+	}
+	files: {
+		"/app/cdk.context.json": "@{services.cdk-context.data.cdkContext}"
+		"/app/config.json":      std.toJSON(args)
+	}
+	env: {
+		CDK_DEFAULT_ACCOUNT: "@{services.cdk-context.data.accountID}"
+		CDK_DEFAULT_REGION:  "@{services.cdk-context.data.region}"
+		VPC_ID:              "@{services.cdk-context.data.vpcID}"
+		ACORN_ACCOUNT:       "@{acorn.account}"
+		ACORN_NAME:          "@{acorn.name}"
+		ACORN_PROJECT:       "@{acorn.project}"
+		ACORN_WORKSPACE:     std.ifelse(args.workspaceName == "", "@{acorn.account}-@{acorn-project}-@{acorn.name}", args.workspaceName)
+	}
+	events: ["create", "update", "delete"]
+	permissions: rules: [
+		{
+			apiGroup: "aws.acorn.io"
+			verbs: [
+				"cloudformation:DescribeStacks",
+				"cloudformation:CreateChangeSet",
+				"cloudformation:DescribeChangeSet",
+				"cloudformation:DescribeStackEvents",
+				"cloudformation:ExecuteChangeSet",
+				"cloudformation:PreviewStackUpdate",
+				"cloudformation:UpdateStack",
+				"cloudformation:GetTemplateSummary",
+				"cloudformation:DeleteStack",
+				"aps:*",
+			]
+			resources: ["*"]
+		},
+	]
+}
