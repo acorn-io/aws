@@ -1,7 +1,13 @@
 args: {
+	// Name of workspace to create, only use if you need a specifc name.
+	// Otherwise let Acorn generate one.
 	workspaceName: ""
+	// Key value pairs to tag the workspace.
 	tags: {}
+	profile: *"" | string
 }
+
+profiles: docs: profile: "docs"
 
 services: amp: {
 	default: true
@@ -47,4 +53,17 @@ jobs: apply: {
 			resources: ["*"]
 		},
 	]
+}
+
+if args.profile == "docs" {
+	services: "generated-amp": {
+		default: true
+		address: "${address}"
+		data: {
+			arn:   "${arn}"
+			url:   "${url}"
+			proto: "${proto}"
+			uri:   "${uri}"
+		}
+	}
 }
