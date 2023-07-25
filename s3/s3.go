@@ -27,9 +27,8 @@ func NewMyStack(scope constructs.Construct, id string, props *MyStackProps) awsc
 
 	// Create an S3 bucket
 	bucket := awss3.NewBucket(stack, jsii.String(props.BucketName), &awss3.BucketProps{
-		PublicReadAccess: jsii.Bool(props.MakePublic),
-		Versioned:        jsii.Bool(props.Versioned),
-		RemovalPolicy:    awscdk.RemovalPolicy_DESTROY,
+		Versioned:     jsii.Bool(props.Versioned),
+		RemovalPolicy: awscdk.RemovalPolicy_DESTROY,
 	})
 
 	// Output the bucket URL and ARN
