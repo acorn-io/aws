@@ -1,0 +1,77 @@
+args: {
+	// Name of queue. Defaults to acorn.externalID
+	queueName: ""
+	// Enable FIFO for the queue
+	fifo: false
+	// Duration in seconds. Default is 30 seconds.
+	visibilityTimeout: 30
+	// Fifo Queue Option Only: ContentBasedDeduplication is a boolean that enables content-based deduplication.
+	contentBasedDeduplication: false
+	// Amount of time in seconds SQS reuses data key before calling KMS again
+	dataKeyReuse: 300
+	// Number of times a message can be unsuccessfully dequeued before being sent to the dead letter queue. A number >0 will create a new queue
+	maxReceiveCount: 0
+	// KMS Key arn to use for encryption. Default is to use Amazon SQS key
+	encryptionMasterKey: ""
+	// Access policy for the queue. Default is to only allow the queue owner
+	accessPolicies: [...localData.#accessPolicy] | *[]
+	// Key value pairs to apply to all AWS resources created by this Acorn
+	tags: {}
+}
+
+services: "cdk-context": build: "../utils/cdk"
+services: "sqs-queue": generated: job: "apply"
+
+jobs: apply: {
+	build: {
+		context: "."
+		additionalContexts: common: "../libs"
+	}
+	files: {
+		"/app/cdk.context.json": "@{services.cdk-context.data.cdkContext}"
+		"/app/config.json":      std.toJSON(args)
+	}
+	events: ["create", "update", "delete"]
+	env: {
+		CDK_DEFAULT_ACCOUNT: "@{services.cdk-context.data.accountID}"
+		CDK_DEFAULT_REGION:  "@{services.cdk-context.data.region}"
+		VPC_ID:              "@{services.cdk-context.data.vpcID}"
+		ACORN_ACCOUNT:       "@{acorn.account}"
+		ACORN_NAME:          "@{acorn.name}"
+		ACORN_PROJECT:       "@{acorn.project}"
+		ACORN_EXTERNAL_ID:   "@{acorn.externalID}"
+	}
+	permissions: rules: [{
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"cloudformation:DescribeStacks",
+			"cloudformation:CreateChangeSet",
+			"cloudformation:DescribeStackEvents",
+			"cloudformation:DescribeChangeSet",
+			"cloudformation:ExecuteChangeSet",
+			"cloudformation:PreviewStackUpdate",
+			"cloudformation:UpdateStack",
+			"cloudformation:GetTemplateSummary",
+			"cloudformation:DeleteStack",
+			"sqs:*",
+		]
+		resources: ["*"]
+	}]
+}
+
+localData: #accessPolicy: {
+	effect?: string
+	actions?: [string]
+	principals?: [...localData.#awsPrincipal]
+	sid?: string
+	conditions?: [string]: {}
+	notActions?: [string]
+	notPrincipals?: [...localData.#awsPrincipal]
+	notResources?: [string]
+	resources?: [string]
+}
+
+localData: #awsPrincipal: {
+	principalType: string
+	identifiers: [string]
+}

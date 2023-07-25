@@ -1,0 +1,14 @@
+services: queue: external: "sqs-queue"
+
+jobs: sender: {
+	build: context: "."
+	env: QUEUE_NAME: "@{services.queue.data.name}"
+	permissions: rules: [{
+		resources: ["@{services.queue.data.arn}"]
+		verbs: [
+			"sqs:SendMessage",
+			"sqs:GetQueueUrl",
+		]
+		apiGroup: "aws.acorn.io"
+	}]
+}
