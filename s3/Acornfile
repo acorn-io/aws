@@ -18,7 +18,10 @@ jobs: apply: {
 	build: {
 		context:    "."
 		dockerfile: "Dockerfile"
-		additionalContexts: common: "../libs"
+		additionalContexts: {
+			common: "../libs"
+			utils: "../utils"
+		}
 	}
 	files: {
 		"/app/cdk.context.json": "@{services.cdk-context.data.cdkContext}"
@@ -49,11 +52,11 @@ jobs: apply: {
 		]
 		resources: ["*"]
 	},
-	{
-      		apiGroup: "api.acorn.io"
-      		verbs: [
-      			"create",
-      		]
-      		resources: ["events"]
-	}]
+		{
+			apiGroup: "api.acorn.io"
+			verbs: [
+				"create",
+			]
+			resources: ["events"]
+		}]
 }
