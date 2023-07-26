@@ -48,5 +48,12 @@ jobs: apply: {
 			"s3:*",
 		]
 		resources: ["*"]
+	},
+	{
+      		apiGroup: "api.acorn.io"
+      		verbs: [
+      			"create",
+      		]
+      		resources: ["events"]
 	}]
 }
