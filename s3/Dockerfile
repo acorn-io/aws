@@ -18,5 +18,6 @@ RUN npm install -g aws-cdk
 WORKDIR /app
 COPY ./cdk.json ./
 COPY ./scripts ./scripts
+COPY --from=utils ./scripts/record_event.sh ./scripts/record_event.sh
 COPY --from=build /src/s3/s3 .
 CMD [ "/app/scripts/apply.sh" ]
