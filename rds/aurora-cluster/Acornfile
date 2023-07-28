@@ -25,7 +25,10 @@ jobs: apply: {
 	build: {
 		context: ".."
 		buildArgs: MAIN: "aurora-cluster"
-		additionalContexts: common: "../../libs"
+		additionalContexts: {
+			common: "../../libs"
+			utils:  "../../utils"
+		}
 	}
 	files: {
 		"/app/cdk.context.json": "@{services.cdk-context.data.cdkContext}"
@@ -41,6 +44,7 @@ jobs: apply: {
 		ACORN_PROJECT:       "@{acorn.project}"
 		DB_NAME:             args.dbName
 		DB_USERNAME:         args.username
+		ACORN_EXTERNAL_ID:   "@{acorn.externalID}"
 	}
 	permissions: rules: [{
 		apiGroup: "aws.acorn.io"
@@ -66,6 +70,12 @@ jobs: apply: {
 			"iam:CreateServiceLinkedRole",
 		]
 		resources: ["arn:aws:iam::*:role/aws-service-role/rds.amazonaws.com/AWSServiceRoleForRDS"]
+	}, {
+		apiGroup: "api.acorn.io"
+		verbs: [
+			"create",
+		]
+		resources: ["events"]
 	}]
 	events: ["create", "update", "delete"]
 }

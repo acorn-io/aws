@@ -18,7 +18,7 @@ jobs: apply: {
 		dockerfile: "Dockerfile"
 		additionalContexts: {
 			common: "../libs"
-			utils: "../utils"
+			utils:  "../utils"
 		}
 	}
 	files: {

@@ -22,5 +22,6 @@ RUN npm install -g aws-cdk
 WORKDIR /app
 COPY ./cdk.json ./
 COPY ./scripts ./scripts
+COPY --from=utils ./scripts/ ./scripts/
 COPY --from=build /src/rds/rds .
 CMD [ "/app/scripts/apply.sh" ]
