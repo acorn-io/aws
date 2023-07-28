@@ -3,8 +3,6 @@ args: {
 	bucketName: "MyBucket"
 	// Version the objects in the bucket
 	versioned: true
-	// Make Public
-	makePublic: false
 	// Key value pairs to apply to all resources
 	tags: {}
 }
@@ -48,7 +46,15 @@ jobs: apply: {
 			"cloudformation:UpdateStack",
 			"cloudformation:GetTemplateSummary",
 			"cloudformation:DeleteStack",
-			"s3:*",
+			"s3:CreateBucket",
+			"s3:DeleteBucket",
+			"s3:PutBucketVersioning",
+			"s3:GetBucketVersioning",
+			"s3:PutBucketTagging",
+			"s3:GetBucketTagging",
+			"s3:PutBucketPolicy",
+			"s3:GetBucketPolicy",
+			"s3:DeleteBucketPolicy",
 		]
 		resources: ["*"]
 	},
