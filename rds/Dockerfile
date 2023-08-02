@@ -2,10 +2,13 @@ FROM cgr.dev/chainguard/go as build
 ARG MAIN
 WORKDIR /src/rds
 COPY --from=common . ../libs/
+COPY --from=utils ./cfn-events/ ../cfn-events/
 COPY . .
 RUN --mount=type=cache,target=/root/go/pkg \
     --mount=type=cache,target=/root/.cache/go-build \
-    go build -o rds ./${MAIN}
+    go build -o rds ./${MAIN} && \
+    cd ../cfn-events && \
+    go build -o cfn-events .
 
 FROM cgr.dev/chainguard/mariadb as user
 WORKDIR /app
@@ -24,4 +27,5 @@ COPY ./cdk.json ./
 COPY ./scripts ./scripts
 COPY --from=utils ./scripts/ ./scripts/
 COPY --from=build /src/rds/rds .
+COPY --from=build /src/cfn-events/cfn-events .
 CMD [ "/app/scripts/apply.sh" ]

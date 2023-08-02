@@ -14,6 +14,10 @@ cdk_synth() {
     cat cfn.yaml
 }
 
+event_success() {
+  record_event "Service${ACORN_EVENT^}d" "CFN Stack: ${STACK_NAME} ${ACORN_EVENT}d successfully"
+}
+
 apply_and_render() {
   # Run CDK synth
   cdk_synth
@@ -31,7 +35,9 @@ apply_and_render() {
   # Turn off echo
   set +x
   ADMIN_PASSWORD="$(aws --output json secretsmanager get-secret-value --secret-id "${PASSWORD_ARN}" --query 'SecretString' | jq -r .|jq -r .password)"
-  record_event "${ACORN_NAME}${ACORN_EVENT}d" "RDS Database ${ACORN_EVENT}d successfully"
+  if [ "${ACORN_EVENT}" != "delete" ]; then
+    event_success
+  fi
 
   cat > /run/secrets/output <<EOF
 services: rds: {
@@ -67,7 +73,7 @@ delete_stack() {
     # Run CloudFormation
     aws cloudformation delete-stack --stack-name "${STACK_NAME}"
     aws cloudformation wait stack-delete-complete --stack-name "${STACK_NAME}" --no-cli-pager
-    record_event "${ACORN_NAME}${ACORN_EVENT}d" "RDS Database ${ACORN_EVENT}d successfully"
+    event_success
 }
 
 if [ "${ACORN_EVENT}" = "delete" ]; then

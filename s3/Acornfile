@@ -32,6 +32,7 @@ jobs: apply: {
 		ACORN_ACCOUNT:       "@{acorn.account}"
 		ACORN_NAME:          "@{acorn.name}"
 		ACORN_PROJECT:       "@{acorn.project}"
+		ACORN_EXTERNAL_ID:   "@{acorn.externalID}"
 	}
 	events: ["create", "update", "delete"]
 	permissions: rules: [{

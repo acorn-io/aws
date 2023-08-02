@@ -13,6 +13,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var engine = awsrds.DatabaseClusterEngine_AURORA_MYSQL()
+
 func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.Stack {
 	var sprops awscdk.StackProps
 	if props != nil {
@@ -32,8 +34,13 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 
 	creds := awsrds.Credentials_FromGeneratedSecret(jsii.String(props.AdminUser), &awsrds.CredentialsBaseOptions{})
 
+	var parameterGroup awsrds.ParameterGroup
+	if len(props.Parameters) > 0 {
+		parameterGroup = rds.NewParameterGroup(stack, jsii.String("ParameterGroup"), props, engine)
+	}
+
 	cluster := awsrds.NewServerlessCluster(stack, jsii.String("Cluster"), &awsrds.ServerlessClusterProps{
-		Engine:              awsrds.DatabaseClusterEngine_AURORA_MYSQL(),
+		Engine:              engine,
 		DefaultDatabaseName: jsii.String(props.DatabaseName),
 		CopyTagsToSnapshot:  jsii.Bool(true),
 		DeletionProtection:  jsii.Bool(props.DeletionProtection),
@@ -45,6 +52,7 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 		},
 		SubnetGroup:    subnetGroup,
 		SecurityGroups: sgs,
+		ParameterGroup: parameterGroup,
 	})
 
 	port := "3306"

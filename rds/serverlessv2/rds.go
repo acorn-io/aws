@@ -13,6 +13,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var engine = awsrds.DatabaseClusterEngine_AuroraMysql(&awsrds.AuroraMysqlClusterEngineProps{
+	Version: awsrds.AuroraMysqlEngineVersion_VER_3_03_0(),
+})
+
 type ServerlessV2ScalingAspect struct{}
 
 func (sv2a ServerlessV2ScalingAspect) Visit(node constructs.IConstruct) {
@@ -47,10 +51,14 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 	}
 
 	creds := awsrds.Credentials_FromGeneratedSecret(jsii.String(props.AdminUser), &awsrds.CredentialsBaseOptions{})
+
+	var parameterGroup awsrds.ParameterGroup
+	if len(props.Parameters) > 0 {
+		parameterGroup = rds.NewParameterGroup(stack, jsii.String("ParameterGroup"), props, engine)
+	}
+
 	cluster := awsrds.NewDatabaseCluster(stack, jsii.String("Cluster"), &awsrds.DatabaseClusterProps{
-		Engine: awsrds.DatabaseClusterEngine_AuroraMysql(&awsrds.AuroraMysqlClusterEngineProps{
-			Version: awsrds.AuroraMysqlEngineVersion_VER_3_03_0(),
-		}),
+		Engine:              engine,
 		DefaultDatabaseName: jsii.String(props.DatabaseName),
 		DeletionProtection:  jsii.Bool(props.DeletionProtection),
 		CopyTagsToSnapshot:  jsii.Bool(true),
@@ -61,8 +69,9 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 			SecurityGroups: sgs,
 			InstanceType:   awsec2.NewInstanceType(jsii.String("serverless")),
 		},
-		Instances:   jsii.Number(1),
-		SubnetGroup: subnetGroup,
+		Instances:      jsii.Number(1),
+		SubnetGroup:    subnetGroup,
+		ParameterGroup: parameterGroup,
 	})
 
 	awscdk.Aspects_Of(cluster).Add(NewServerlessV2ScalingAspect())
