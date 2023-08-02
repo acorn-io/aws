@@ -13,6 +13,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var engine = awsrds.DatabaseClusterEngine_AuroraMysql(&awsrds.AuroraMysqlClusterEngineProps{
+	Version: awsrds.AuroraMysqlEngineVersion_VER_3_03_0(),
+})
+
 func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.Stack {
 	var sprops awscdk.StackProps
 	if props != nil {
@@ -38,10 +42,13 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 
 	creds := awsrds.Credentials_FromGeneratedSecret(jsii.String(props.AdminUser), &awsrds.CredentialsBaseOptions{})
 
+	var parameterGroup awsrds.ParameterGroup
+	if len(props.Parameters) > 0 {
+		parameterGroup = rds.NewParameterGroup(stack, jsii.String("ParameterGroup"), props, engine)
+	}
+
 	cluster := awsrds.NewDatabaseCluster(stack, jsii.String("Cluster"), &awsrds.DatabaseClusterProps{
-		Engine: awsrds.DatabaseClusterEngine_AuroraMysql(&awsrds.AuroraMysqlClusterEngineProps{
-			Version: awsrds.AuroraMysqlEngineVersion_VER_3_03_0(),
-		}),
+		Engine:              engine,
 		DefaultDatabaseName: jsii.String(props.DatabaseName),
 		CopyTagsToSnapshot:  jsii.Bool(true),
 		Credentials:         creds,
@@ -52,8 +59,9 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 			SecurityGroups: sgs,
 			InstanceType:   awsec2.InstanceType_Of(awsec2.InstanceClass_BURSTABLE3, rds.SizeMap[props.InstanceSize]),
 		},
-		Instances:   jsii.Number(1),
-		SubnetGroup: subnetGroup,
+		Instances:      jsii.Number(1),
+		SubnetGroup:    subnetGroup,
+		ParameterGroup: parameterGroup,
 	})
 
 	port := "3306"

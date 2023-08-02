@@ -10,6 +10,8 @@ args: {
 	deletionProtection: false
 	// Size of the instance. Default is small
 	instanceSize: "small"
+	// RDS MySQL Database Parameters to apply to the cluster. Must be k/v string pairs(ex. max_connections: "1000").
+	parameters: {}
 	// Key value pairs of tags to apply to the RDS cluster and all other resources.
 	tags: {}
 }
@@ -53,6 +55,7 @@ jobs: apply: {
 				"cloudformation:CreateChangeSet",
 				"cloudformation:DescribeChangeSet",
 				"cloudformation:DescribeStackEvents",
+				"cloudformation:DescribeStackResources",
 				"cloudformation:ExecuteChangeSet",
 				"cloudformation:PreviewStackUpdate",
 				"cloudformation:UpdateStack",

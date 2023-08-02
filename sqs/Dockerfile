@@ -19,4 +19,5 @@ WORKDIR /app
 COPY ./cdk.json ./
 COPY ./scripts ./scripts
 COPY --from=build /src/sqs/sqs .
+COPY --from=utils . ./scripts/ ./scripts/
 CMD [ "/app/scripts/apply.sh" ]

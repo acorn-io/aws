@@ -27,7 +27,26 @@ type RDSStackProps struct {
 	AdminUser          string            `json:"adminUsername"`
 	Tags               map[string]string `json:"tags"`
 	DeletionProtection bool              `json:"deletionProtection"`
+	Parameters         map[string]string `json:"parameters"`
 	VpcID              string
+}
+
+func NewParameterGroup(scope constructs.Construct, name *string, props *RDSStackProps, engine awsrds.IClusterEngine) awsrds.ParameterGroup {
+	parameterGroup := awsrds.NewParameterGroup(scope, name, &awsrds.ParameterGroupProps{
+		Engine:      engine,
+		Description: jsii.String("Acorn created RDS Parameter Group"),
+		Parameters:  mapStringToMapStringPtr(props.Parameters),
+	})
+
+	return parameterGroup
+}
+
+func mapStringToMapStringPtr(from map[string]string) *map[string]*string {
+	to := &map[string]*string{}
+	for k, v := range from {
+		(*to)[k] = jsii.String(v)
+	}
+	return to
 }
 
 func GetAllowAllVPCSecurityGroup(scope constructs.Construct, name *string, vpc awsec2.IVpc) awsec2.SecurityGroup {

@@ -1,13 +1,15 @@
 args: {
 	// Name of the root/admin user. Default is admin.
 	adminUsername: "admin"
-	// Name of an additional user to create. This user will have complete access to the database.
+	// Name of an additional user to create. This user will have complete access to the database
 	// If left blank, no additional user will be created.
 	username: ""
 	// Name of the database instance. Default is instance.
 	dbName: "instance"
-	// Deletion protection, you must set to false in order for the RDS db to be deleted. Default is false
+	// Deletion protection, you must set to false in order for the RDS db to be deleted. Default is false.
 	deletionProtection: false
+	// RDS MySQL Database Parameters to apply to the cluster. Must be k/v string pairs(ex. max_connections: "1000").
+	parameters: {}
 	// Key value pairs of tags to apply to the RDS cluster and all other resources.
 	tags: {}
 }
@@ -49,6 +51,7 @@ jobs: apply: {
 			"cloudformation:DescribeStacks",
 			"cloudformation:CreateChangeSet",
 			"cloudformation:DescribeStackEvents",
+			"cloudformation:DescribeStackResources",
 			"cloudformation:DescribeChangeSet",
 			"cloudformation:ExecuteChangeSet",
 			"cloudformation:PreviewStackUpdate",

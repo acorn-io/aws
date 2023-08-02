@@ -13,7 +13,10 @@ services: "cdk-context": build: "../utils/cdk"
 jobs: apply: {
 	build: {
 		context: "."
-		additionalContexts: common: "../libs"
+		additionalContexts: {
+			common: "../libs"
+			utils:  "../utils"
+		}
 	}
 	files: {
 		"/app/cdk.context.json": "@{services.cdk-context.data.cdkContext}"
@@ -26,7 +29,8 @@ jobs: apply: {
 		ACORN_ACCOUNT:       "@{acorn.account}"
 		ACORN_NAME:          "@{acorn.name}"
 		ACORN_PROJECT:       "@{acorn.project}"
-		ACORN_WORKSPACE:     std.ifelse(args.workspaceName == "", "@{acorn.account}-@{acorn-project}-@{acorn.name}", args.workspaceName)
+		ACORN_WORKSPACE:     std.ifelse(args.workspaceName == "", "@{acorn.externalID}", args.workspaceName)
+		ACORN_EXTERNAL_ID:   "@{acorn.externalID}"
 	}
 	events: ["create", "update", "delete"]
 	permissions: rules: [

@@ -25,7 +25,10 @@ services: "sqs-queue": generated: job: "apply"
 jobs: apply: {
 	build: {
 		context: "."
-		additionalContexts: common: "../libs"
+		additionalContexts: {
+			common: "../libs"
+			utils:  "../utils"
+		}
 	}
 	files: {
 		"/app/cdk.context.json": "@{services.cdk-context.data.cdkContext}"

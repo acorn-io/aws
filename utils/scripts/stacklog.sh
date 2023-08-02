@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ -x "$(command -v /app/cfn-events)" ]; then
+    /app/cfn-events &
+fi
+
 SEEN=""
 while sleep 5; do
     while read TS REST ; do
