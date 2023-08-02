@@ -1,6 +1,9 @@
 #!/bin/bash
 
+set +x
+
 function record_event() {
+	set +x
 	# Consume expected environment variables and files
 	local sa="/var/run/secrets/kubernetes.io/serviceaccount"
 	local token=$(cat "${sa}/token")

@@ -24,16 +24,22 @@ const (
 	acornEventKey   = "ACORN_EVENT"
 	acornNameKey    = "ACORN_NAME"
 	acornProjectKey = "ACORN_PROJECT"
-	MESSAGE         = "CFN Stack: %s provisioning, %d/%d/%d(ready/failed/total)\n"
 )
 
-type ServerConfig struct {
-	StackName     string
-	Context       context.Context
-	CfnClient     *cloudformation.Client
-	AwsConfig     aws.Config
-	KClient       k8sClient.WithWatch
-	Transitioning bool
+type StackWatcher struct {
+	Context   context.Context
+	CfnClient *cloudformation.Client
+	KClient   k8sClient.WithWatch
+	Stack     *Stack
+}
+
+type Stack struct {
+	Name            string
+	DeletedCount    int
+	ReadyCount      int
+	FailedResources int
+	TotalCount      int
+	Transitioning   bool
 }
 
 func main() {
@@ -50,35 +56,36 @@ func main() {
 
 	awsClient := cloudformation.NewFromConfig(cfg)
 
-	sc := &ServerConfig{
-		StackName: os.Getenv(stackNameEnvKey),
+	sw := &StackWatcher{
+		Stack: &Stack{
+			Name: os.Getenv(stackNameEnvKey),
+		},
 		Context:   ctx,
 		CfnClient: awsClient,
-		AwsConfig: cfg,
 		KClient:   k8sClient,
 	}
 
-	if sc.StackName == "" {
+	if sw.Stack.Name == "" {
 		logrus.Fatalf("Missing %s environment variable pointing to Cloud Formation StackName", stackNameEnvKey)
 	}
 
-	if err := sc.watchStack(); err != nil {
+	if err := sw.watchStack(); err != nil {
 		logrus.Fatal(err)
 	}
 
-	logrus.Infof("Stack %s is ready", sc.StackName)
+	logrus.Infof("Stack %s is ready", sw.Stack.Name)
 
 }
 
-func (sc *ServerConfig) watchStack() error {
+func (sw *StackWatcher) watchStack() error {
 
 	for {
 		select {
-		case <-sc.Context.Done():
+		case <-sw.Context.Done():
 			return nil
 		default:
-			stackResources, err := sc.CfnClient.DescribeStackResources(sc.Context, &cloudformation.DescribeStackResourcesInput{
-				StackName: aws.String(sc.StackName),
+			stackResources, err := sw.CfnClient.DescribeStackResources(sw.Context, &cloudformation.DescribeStackResourcesInput{
+				StackName: aws.String(sw.Stack.Name),
 			})
 			if err != nil {
 				logrus.Error(err)
@@ -86,46 +93,44 @@ func (sc *ServerConfig) watchStack() error {
 				continue
 			}
 
-			totalCount := len(stackResources.StackResources)
-			var readyCount int
-			var failedResources int
+			sw.Stack.ReadyCount = 0
+			sw.Stack.FailedResources = 0
+			sw.Stack.DeletedCount = 0
+			sw.Stack.TotalCount = len(stackResources.StackResources)
 			for _, resource := range stackResources.StackResources {
 				if resource.ResourceStatus == types.ResourceStatusCreateComplete || resource.ResourceStatus == types.ResourceStatusUpdateComplete {
-					readyCount++
+					sw.Stack.ReadyCount++
 				}
-				if resource.ResourceStatus == types.ResourceStatusCreateFailed || resource.ResourceStatus == types.ResourceStatusUpdateFailed {
-					failedResources++
+				if resource.ResourceStatus == types.ResourceStatusCreateFailed || resource.ResourceStatus == types.ResourceStatusUpdateFailed || resource.ResourceStatus == types.ResourceStatusDeleteFailed {
+					sw.Stack.FailedResources++
+				}
+				if resource.ResourceStatus == types.ResourceStatusDeleteComplete {
+					sw.Stack.DeletedCount++
 				}
 			}
-			if readyCount < totalCount || failedResources > 0 {
-				sc.Transitioning = true
+			if sw.Stack.ReadyCount < sw.Stack.TotalCount || sw.Stack.FailedResources > 0 {
+				sw.Stack.Transitioning = true
 			}
 
-			if readyCount == totalCount && sc.Transitioning {
-				sc.Transitioning = false
-				sc.emit(readyCount, failedResources, totalCount)
+			if sw.Stack.ready() && sw.Stack.Transitioning {
+				sw.Stack.Transitioning = false
+				sw.emit()
 				continue
-			} else if readyCount == totalCount {
+			} else if sw.Stack.ready() {
 				continue
 			}
 
-			sc.emit(readyCount, failedResources, totalCount)
+			sw.emit()
 			time.Sleep(30 * time.Second)
 		}
 	}
 }
 
-func (sc *ServerConfig) emit(r, f, total int) {
-	if err := sc.emitEvent(r, f, total); err != nil {
-		logrus.Error(err)
-	}
-
-	if err := sc.logStdOut(r, f, total); err != nil {
-		logrus.Error(err)
-	}
+func (s *Stack) ready() bool {
+	return s.TotalCount == s.ReadyCount
 }
 
-func (sc *ServerConfig) emitEvent(r, f, total int) error {
+func (sw *StackWatcher) emit() {
 	e := &apiv1.Event{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Event",
@@ -136,24 +141,23 @@ func (sc *ServerConfig) emitEvent(r, f, total int) error {
 			GenerateName: "se-",
 		},
 
-		Type:        getEventType(sc.Transitioning),
+		Type:        getEventPhrase(sw.Stack.Transitioning),
 		AppName:     os.Getenv(acornNameKey),
 		Severity:    "info",
-		Description: fmt.Sprintf(MESSAGE, sc.StackName, r, f, total),
+		Description: sw.Stack.message(),
 		Resource: &internalv1.EventResource{
 			Kind: "app",
 			Name: os.Getenv(acornNameKey),
 		},
 	}
-	return sc.KClient.Create(sc.Context, e)
+	if err := sw.KClient.Create(sw.Context, e); err != nil {
+		logrus.Error(err)
+	}
+
+	fmt.Print(sw.Stack.message())
 }
 
-func (sc *ServerConfig) logStdOut(r, f, total int) error {
-	fmt.Printf(MESSAGE, sc.StackName, r, f, total)
-	return nil
-}
-
-func getEventType(t bool) string {
+func getEventPhrase(t bool) string {
 	event := os.Getenv(acornEventKey)
 	if !t {
 		return fmt.Sprintf("Service%sd", strings.ToTitle(event))
@@ -165,4 +169,16 @@ func getEventType(t bool) string {
 		"delete": "ServiceDeleting",
 	}
 	return eventPhrase[event]
+}
+
+func (s *Stack) message() string {
+	action := "provisioning"
+	key := "(ready/failed/total)"
+	value := s.ReadyCount
+	if os.Getenv(acornEventKey) == "delete" {
+		action = "deleting"
+		key = "(deleted/failed/total)"
+		value = s.DeletedCount
+	}
+	return fmt.Sprintf("CFN Stack: %s %s, %d/%d/%d %s\n", s.Name, action, value, s.FailedResources, s.TotalCount, key)
 }

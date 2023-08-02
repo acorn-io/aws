@@ -7,10 +7,14 @@ STACK_NAME="${ACORN_EXTERNAL_ID}"
 ./scripts/stack_log.sh ${STACK_NAME} &
 . ./scripts/record_events.sh
 
+record_success() {
+    record_event "Service${ACORN_EVENT^}d" "CFN Stack: ${STACK_NAME} ${ACORN_EVENT}d successfully"
+}
+
 if [ "${ACORN_EVENT}" = "delete" ]; then
     aws cloudformation delete-stack --stack-name "${STACK_NAME}"
     aws cloudformation wait stack-delete-complete --stack-name "${STACK_NAME}"
-    record_events "${ACORN_EVENT}d" "Successfully deleted stack ${STACK_NAME}"
+    record_success
     exit 0
 fi
 
@@ -31,7 +35,7 @@ cat cfn.yaml
 aws cloudformation deploy --template-file cfn.yaml --stack-name "${STACK_NAME}" --capabilities CAPABILITY_IAM --capabilities CAPABILITY_NAMED_IAM --no-fail-on-empty-changeset --no-cli-pager
 aws cloudformation describe-stacks --stack-name "${STACK_NAME}" --query 'Stacks[0].Outputs' > outputs.json
 
-record_events "${ACORN_EVENT}d" "Successfully applied stack ${STACK_NAME}"
+record_success
 
 # Render Output
 url=$(jq -r '.[] | select(.OutputKey=="AMPEndpointURL")|.OutputValue' outputs.json)

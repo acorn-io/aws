@@ -59,6 +59,7 @@ jobs: apply: {
 			"cloudformation:ExecuteChangeSet",
 			"cloudformation:PreviewStackUpdate",
 			"cloudformation:UpdateStack",
+			"cloudformation:RollbackStack",
 			"cloudformation:GetTemplateSummary",
 			"cloudformation:DeleteStack",
 			"ssm:GetParameters",

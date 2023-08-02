@@ -41,6 +41,7 @@ jobs: apply: {
 			"cloudformation:DescribeStacks",
 			"cloudformation:CreateChangeSet",
 			"cloudformation:DescribeStackEvents",
+			"cloudformation:DescribeStackResources",
 			"cloudformation:DescribeChangeSet",
 			"cloudformation:ExecuteChangeSet",
 			"cloudformation:PreviewStackUpdate",
@@ -58,12 +59,11 @@ jobs: apply: {
 			"s3:DeleteBucketPolicy",
 		]
 		resources: ["*"]
-	},
-		{
-			apiGroup: "api.acorn.io"
-			verbs: [
-				"create",
-			]
-			resources: ["events"]
-		}]
+	}, {
+		apiGroup: "api.acorn.io"
+		verbs: [
+			"create",
+		]
+		resources: ["events"]
+	}]
 }
