@@ -1,16 +1,19 @@
 #!/bin/bash
-set -e
-
 source ./scripts/record_event.sh
 
 STACK_NAME="${ACORN_EXTERNAL_ID}"
 
-./scripts/stack_log.sh ${STACK_NAME} &
+./scripts/stacklog.sh ${STACK_NAME} &
+set -e
+
+record_success() {
+	record_event "Service${ACORN_EVENT^}d" "CFN Stack: ${STACK_NAME} ${ACORN_EVENT}d successfully"
+}
 
 if [ "${ACORN_EVENT}" = "delete" ]; then
 	aws cloudformation delete-stack --stack-name "${STACK_NAME}"
 	aws cloudformation wait stack-delete-complete --stack-name "${STACK_NAME}"
-	record_event "${ACORN_EVENT}d" "Bucket successfully deleted"
+	record_success
 	exit 0
 fi
 
@@ -31,7 +34,7 @@ cat cfn.yaml
 aws cloudformation deploy --template-file cfn.yaml --stack-name "${STACK_NAME}" --capabilities CAPABILITY_IAM --capabilities CAPABILITY_NAMED_IAM --no-fail-on-empty-changeset --no-cli-pager
 aws cloudformation describe-stacks --stack-name "${STACK_NAME}" --query 'Stacks[0].Outputs' >outputs.json
 
-record_event "${ACORN_EVENT}d" "Bucket successfully updated"
+record_success
 
 # Render Output
 URL="$(jq -r '.[] | select(.OutputKey=="BucketURL") | .OutputValue' outputs.json | cut -d'/' -f3)"

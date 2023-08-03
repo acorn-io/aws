@@ -50,6 +50,7 @@ jobs: apply: {
 			"cloudformation:DescribeStacks",
 			"cloudformation:CreateChangeSet",
 			"cloudformation:DescribeStackEvents",
+			"cloudformation:DescribeStackResources",
 			"cloudformation:DescribeChangeSet",
 			"cloudformation:ExecuteChangeSet",
 			"cloudformation:PreviewStackUpdate",
@@ -59,6 +60,12 @@ jobs: apply: {
 			"sqs:*",
 		]
 		resources: ["*"]
+	}, {
+		apiGroup: "api.acorn.io"
+		verbs: [
+			"create",
+		]
+		resources: ["events"]
 	}]
 }
 

@@ -1,6 +1,7 @@
 #!/bin/bash
-
 STACK_NAME="${ACORN_EXTERNAL_ID}"
+
+echo "Running ${ACORN_EVENT} job event on ${STACK_NAME}"
 
 # Start logging
 ./scripts/stacklog.sh ${STACK_NAME} &
@@ -61,10 +62,10 @@ EOF
   else
     echo 'services: rds: secrets: ["admin", "user"]' >> /run/secrets/output
   fi
+set -x
 }
 
 delete_stack() {
-    apply_and_render
     if $(grep 'DeletionProtection: true' cfn.yaml > /dev/null 2>&1); then
         echo "DeletionProtection is enabled, update acorn app with '--deletion-protection=false' to delete this stack..."
         exit 1
@@ -86,6 +87,9 @@ STATUS=$(aws cloudformation describe-stacks --stack-name "${STACK_NAME}" | jq -r
 
 if [ "$STATUS" = "DELETE_FAILED" ]; then
     delete_stack
+elif [ "$STATUS" = "ROLLBACK_FAILED" ]; then
+  aws cloudformation rollback-stack --stack-name "${STACK_NAME}"
+  aws cloudformation wait stack-rollback-complete --stack-name "${STACK_NAME}" --no-cli-pager --retain-except-on-create
 fi
 
 # Run CloudFormation

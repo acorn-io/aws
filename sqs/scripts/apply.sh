@@ -3,11 +3,17 @@ set -e
 
 STACK_NAME="${ACORN_EXTERNAL_ID}"
 
-./scripts/stack_log.sh ${STACK_NAME} &
+./scripts/stacklog.sh ${STACK_NAME} &
+. ./scripts/record_event.sh
+
+record_success() {
+    record_event "Service${ACORN_EVENT^}d" "CFN Stack: ${STACK_NAME} ${ACORN_EVENT}d successfully"
+}
 
 if [ "${ACORN_EVENT}" = "delete" ]; then
     aws cloudformation delete-stack --stack-name "${STACK_NAME}"
     aws cloudformation wait stack-delete-complete --stack-name "${STACK_NAME}"
+    record_success
     exit 0
 fi
 
@@ -37,6 +43,7 @@ proto="${url%%://*}"
 no_proto="${url#*://}"
 address="${no_proto%%/*}"
 uri="${no_proto#*$address}"
+record_success
 
 
 cat > /run/secrets/output <<EOF
