@@ -47,21 +47,26 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 		parameterGroup = rds.NewParameterGroup(stack, jsii.String("ParameterGroup"), props, engine)
 	}
 
+	if !rds.ValidInstanceParameters(props.InstanceClass, props.InstanceSize) {
+		logrus.Fatal("Invalid instance class or size provided, check acorn run [IMAGE] --help for valid options")
+	}
+
 	cluster := awsrds.NewDatabaseCluster(stack, jsii.String("Cluster"), &awsrds.DatabaseClusterProps{
 		Engine:              engine,
 		DefaultDatabaseName: jsii.String(props.DatabaseName),
 		CopyTagsToSnapshot:  jsii.Bool(true),
 		Credentials:         creds,
 		DeletionProtection:  jsii.Bool(props.DeletionProtection),
-		RemovalPolicy:       awscdk.RemovalPolicy_SNAPSHOT,
-		InstanceProps: &awsrds.InstanceProps{
-			Vpc:            vpc,
-			SecurityGroups: sgs,
-			InstanceType:   awsec2.InstanceType_Of(awsec2.InstanceClass_BURSTABLE3, rds.SizeMap[props.InstanceSize]),
-		},
-		Instances:      jsii.Number(1),
-		SubnetGroup:    subnetGroup,
-		ParameterGroup: parameterGroup,
+		RemovalPolicy:       rds.GetRemovalPolicy(props),
+		SubnetGroup:         subnetGroup,
+		Vpc:                 vpc,
+		SecurityGroups:      sgs,
+		ParameterGroup:      parameterGroup,
+		Writer: awsrds.ClusterInstance_Provisioned(jsii.String("Instance"), &awsrds.ProvisionedClusterInstanceProps{
+			InstanceType:              awsec2.InstanceType_Of(rds.ComputeClassMap[props.InstanceClass], rds.InstanceSizeMap[props.InstanceSize]),
+			IsFromLegacyInstanceProps: jsii.Bool(true),
+			EnablePerformanceInsights: jsii.Bool(props.EnablePerformanceInsights),
+		}),
 	})
 
 	port := "3306"

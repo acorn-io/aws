@@ -8,10 +8,18 @@ args: {
 	dbName: "instance"
 	// Deletion protection, you must set to false in order for the RDS db to be deleted. Default is false
 	deletionProtection: false
-	// Size of the instance. Default is small
+	// Size of the instance. Default is small. (Deprecated no longer has an effect)
 	instanceSize: "small"
+	// Aurora Capacity Units minimum value must be 1, 2, 4, 8, 16, 32, 64, 128, 256, 384. Default is .5.
+	auroraCapacityUnitsV2Min: 0.5
+	// Aurora Capacity Units maximum value must be 1, 2, 4, 8, 16, 32, 64, 128, 256, 384. Default is 8.
+	auroraCapacityUnitsV2Max: 8
 	// RDS MySQL Database Parameters to apply to the cluster. Must be k/v string pairs(ex. max_connections: "1000").
 	parameters: {}
+	// Do not take a final snapshot on delete or update and replace operations. Default is false. If skip is enabled the DB will be gone forever if deleted or replaced.
+	skipSnapshotOnDelete: false
+	// Enable Performance Insights. Default is false.
+	enablePerformanceInsights: false
 	// Key value pairs of tags to apply to the RDS cluster and all other resources.
 	tags: {}
 }
@@ -54,12 +62,14 @@ jobs: apply: {
 				"cloudformation:DescribeStacks",
 				"cloudformation:CreateChangeSet",
 				"cloudformation:DescribeChangeSet",
+				"cloudformation:ListChangeSets",
 				"cloudformation:DescribeStackEvents",
 				"cloudformation:DescribeStackResources",
 				"cloudformation:ExecuteChangeSet",
 				"cloudformation:PreviewStackUpdate",
 				"cloudformation:UpdateStack",
 				"cloudformation:RollbackStack",
+				"cloudformation:GetTemplate",
 				"cloudformation:GetTemplateSummary",
 				"cloudformation:DeleteStack",
 				"ssm:GetParameters",
@@ -91,7 +101,7 @@ if args.username != "" {
 			MYSQL_ADMIN_USER:     args.adminUsername
 			MYSQL_ADMIN_PASSWORD: "@{secrets.admin.password}"
 			MYSQL_USER:           args.username
-			MYSWL_PASSWORD:       "@{secrets.user.password}"
+			MYSQL_PASSWORD:       "@{secrets.user.password}"
 			MYSQL_HOST:           "@{service.rds.address}"
 			MYSQL_DATABASE:       args.dbName
 		}

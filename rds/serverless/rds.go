@@ -44,11 +44,14 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 		DefaultDatabaseName: jsii.String(props.DatabaseName),
 		CopyTagsToSnapshot:  jsii.Bool(true),
 		DeletionProtection:  jsii.Bool(props.DeletionProtection),
-		RemovalPolicy:       awscdk.RemovalPolicy_SNAPSHOT,
-		Credentials:         creds,
-		Vpc:                 vpc,
+		RemovalPolicy:       rds.GetRemovalPolicy(props),
+
+		Credentials: creds,
+		Vpc:         vpc,
 		Scaling: &awsrds.ServerlessScalingOptions{
-			AutoPause: awscdk.Duration_Minutes(jsii.Number(10)),
+			AutoPause:   awscdk.Duration_Minutes(jsii.Number(props.AutoPauseDurationMinutes)),
+			MinCapacity: getACUFromInt(props.AuroraCapacityUnitsMin),
+			MaxCapacity: getACUFromInt(props.AuroraCapacityUnitsMax),
 		},
 		SubnetGroup:    subnetGroup,
 		SecurityGroups: sgs,
@@ -75,6 +78,34 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 	})
 
 	return stack
+}
+
+func getACUFromInt(i int) awsrds.AuroraCapacityUnit {
+	switch i {
+	case 1:
+		return awsrds.AuroraCapacityUnit_ACU_1
+	case 2:
+		return awsrds.AuroraCapacityUnit_ACU_2
+	case 4:
+		return awsrds.AuroraCapacityUnit_ACU_4
+	case 8:
+		return awsrds.AuroraCapacityUnit_ACU_8
+	case 16:
+		return awsrds.AuroraCapacityUnit_ACU_16
+	case 32:
+		return awsrds.AuroraCapacityUnit_ACU_32
+	case 64:
+		return awsrds.AuroraCapacityUnit_ACU_64
+	case 128:
+		return awsrds.AuroraCapacityUnit_ACU_128
+	case 256:
+		return awsrds.AuroraCapacityUnit_ACU_256
+	case 384:
+		return awsrds.AuroraCapacityUnit_ACU_384
+	default:
+		logrus.Fatalf("invalid ACU request must be 1, 2, 4, 8, 16, 32, 64, 128, 256, 384. Passed in: %d", i)
+	}
+	return ""
 }
 
 func main() {

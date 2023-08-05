@@ -10,6 +10,14 @@ args: {
 	deletionProtection: false
 	// RDS MySQL Database Parameters to apply to the cluster. Must be k/v string pairs(ex. max_connections: "1000").
 	parameters: {}
+	// Aurora Capacity Units minimum value must be 1, 2, 4, 8, 16, 32, 64, 128, 256, 384. Default is 4.
+	auroraCapacityUnitsMin: 4
+	// Aurora Capacity Units maximum value must be 1, 2, 4, 8, 16, 32, 64, 128, 256, 384. Default is 8.
+	auroraCapacityUnitsMax: 8
+	// Time in minutes to pause Aurora serverless DB cluster after it's been idle. Default is 10 set to 0 to disable.
+	AuroraPauseDurationMinutes: 10
+	// Do not take a final snapshot on delete or update and replace operations. Default is false. If skip is enabled the DB will be gone forever if deleted or replaced.
+	skipSnapshotOnDelete: false
 	// Key value pairs of tags to apply to the RDS cluster and all other resources.
 	tags: {}
 }
@@ -53,10 +61,12 @@ jobs: apply: {
 			"cloudformation:DescribeStackEvents",
 			"cloudformation:DescribeStackResources",
 			"cloudformation:DescribeChangeSet",
+			"cloudformation:ListChangeSets",
 			"cloudformation:ExecuteChangeSet",
 			"cloudformation:PreviewStackUpdate",
 			"cloudformation:UpdateStack",
 			"cloudformation:RollbackStack",
+			"cloudformation:GetTemplate",
 			"cloudformation:GetTemplateSummary",
 			"cloudformation:DeleteStack",
 			"ssm:GetParameters",
