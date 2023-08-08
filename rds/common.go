@@ -8,27 +8,43 @@ import (
 	"github.com/aws/jsii-runtime-go"
 )
 
-const (
-	configFile = "/app/config.json"
-)
-
 var (
-	SizeMap = map[string]awsec2.InstanceSize{
-		"small":  awsec2.InstanceSize_SMALL,
-		"medium": awsec2.InstanceSize_MEDIUM,
-		"large":  awsec2.InstanceSize_LARGE,
+	InstanceSizeMap = map[string]awsec2.InstanceSize{
+		"small":   awsec2.InstanceSize_SMALL,
+		"medium":  awsec2.InstanceSize_MEDIUM,
+		"large":   awsec2.InstanceSize_LARGE,
+		"xlarge":  awsec2.InstanceSize_XLARGE,
+		"2xlarge": awsec2.InstanceSize_XLARGE2,
+	}
+	ComputeClassMap = map[string]awsec2.InstanceClass{
+		"burstable":               awsec2.InstanceClass_BURSTABLE3,
+		"burstableGraviton":       awsec2.InstanceClass_BURSTABLE4_GRAVITON,
+		"standard":                awsec2.InstanceClass_M5,
+		"standardGraviton":        awsec2.InstanceClass_M7G,
+		"memoryOptimized":         awsec2.InstanceClass_R5,
+		"memoryOptimizedGraviton": awsec2.InstanceClass_R7G,
 	}
 )
 
 type RDSStackProps struct {
 	awscdk.StackProps
-	DatabaseName       string            `json:"dbName"`
-	InstanceSize       string            `json:"instanceSize"`
-	AdminUser          string            `json:"adminUsername"`
-	Tags               map[string]string `json:"tags"`
-	DeletionProtection bool              `json:"deletionProtection"`
-	Parameters         map[string]string `json:"parameters"`
-	VpcID              string
+	DatabaseName              string            `json:"dbName"`
+	InstanceClass             string            `json:"instanceClass"`
+	InstanceSize              string            `json:"instanceSize"`
+	AdminUser                 string            `json:"adminUsername"`
+	Tags                      map[string]string `json:"tags"`
+	DeletionProtection        bool              `json:"deletionProtection"`
+	Parameters                map[string]string `json:"parameters"`
+	SkipSnapShotOnDelete      bool              `json:"skipSnapshotOnDelete"`
+	EnablePerformanceInsights bool              `json:"enablePerformanceInsights"`
+	VpcID                     string
+	// Scaling units for serverless v1
+	AuroraCapacityUnitsMin   int `json:"auroraCapacityUnitsMin"`
+	AuroraCapacityUnitsMax   int `json:"auroraCapacityUnitsMax"`
+	AutoPauseDurationMinutes int `json:"autoPauseDurationMinutes"`
+	// Scaling Units for serverless v2
+	AuroraCapacityUnitsV2Min float64 `json:"auroraCapacityUnitsV2Min"`
+	AuroraCapacityUnitsV2Max float64 `json:"auroraCapacityUnitsV2Max"`
 }
 
 func NewParameterGroup(scope constructs.Construct, name *string, props *RDSStackProps, engine awsrds.IClusterEngine) awsrds.ParameterGroup {
@@ -47,6 +63,23 @@ func mapStringToMapStringPtr(from map[string]string) *map[string]*string {
 		(*to)[k] = jsii.String(v)
 	}
 	return to
+}
+
+func ValidInstanceParameters(instanceClass string, instanceSize string) bool {
+	if _, ok := InstanceSizeMap[instanceSize]; !ok {
+		return false
+	}
+	if _, ok := ComputeClassMap[instanceClass]; !ok {
+		return false
+	}
+	return true
+}
+
+func GetRemovalPolicy(props *RDSStackProps) awscdk.RemovalPolicy {
+	if props.SkipSnapShotOnDelete {
+		return awscdk.RemovalPolicy_DESTROY
+	}
+	return awscdk.RemovalPolicy_SNAPSHOT
 }
 
 func GetAllowAllVPCSecurityGroup(scope constructs.Construct, name *string, vpc awsec2.IVpc) awsec2.SecurityGroup {

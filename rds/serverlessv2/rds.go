@@ -17,21 +17,6 @@ var engine = awsrds.DatabaseClusterEngine_AuroraMysql(&awsrds.AuroraMysqlCluster
 	Version: awsrds.AuroraMysqlEngineVersion_VER_3_03_0(),
 })
 
-type ServerlessV2ScalingAspect struct{}
-
-func (sv2a ServerlessV2ScalingAspect) Visit(node constructs.IConstruct) {
-	if n, ok := node.(awsrds.CfnDBCluster); ok {
-		n.SetServerlessV2ScalingConfiguration(&awsrds.CfnDBCluster_ServerlessV2ScalingConfigurationProperty{
-			MinCapacity: jsii.Number(.5),
-			MaxCapacity: jsii.Number(2),
-		})
-	}
-}
-
-func NewServerlessV2ScalingAspect() *ServerlessV2ScalingAspect {
-	return &ServerlessV2ScalingAspect{}
-}
-
 func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.Stack {
 	var sprops awscdk.StackProps
 	if props != nil {
@@ -58,23 +43,22 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 	}
 
 	cluster := awsrds.NewDatabaseCluster(stack, jsii.String("Cluster"), &awsrds.DatabaseClusterProps{
-		Engine:              engine,
-		DefaultDatabaseName: jsii.String(props.DatabaseName),
-		DeletionProtection:  jsii.Bool(props.DeletionProtection),
-		CopyTagsToSnapshot:  jsii.Bool(true),
-		RemovalPolicy:       awscdk.RemovalPolicy_SNAPSHOT,
-		Credentials:         creds,
-		InstanceProps: &awsrds.InstanceProps{
-			Vpc:            vpc,
-			SecurityGroups: sgs,
-			InstanceType:   awsec2.NewInstanceType(jsii.String("serverless")),
-		},
-		Instances:      jsii.Number(1),
+		Engine:                  engine,
+		DefaultDatabaseName:     jsii.String(props.DatabaseName),
+		DeletionProtection:      jsii.Bool(props.DeletionProtection),
+		CopyTagsToSnapshot:      jsii.Bool(true),
+		RemovalPolicy:           rds.GetRemovalPolicy(props),
+		Credentials:             creds,
+		Vpc:                     vpc,
+		SecurityGroups:          sgs,
+		ServerlessV2MinCapacity: jsii.Number(props.AuroraCapacityUnitsV2Min),
+		ServerlessV2MaxCapacity: jsii.Number(props.AuroraCapacityUnitsV2Max),
+		Writer: awsrds.ClusterInstance_ServerlessV2(jsii.String("Instance"), &awsrds.ServerlessV2ClusterInstanceProps{
+			EnablePerformanceInsights: jsii.Bool(props.EnablePerformanceInsights),
+		}),
 		SubnetGroup:    subnetGroup,
 		ParameterGroup: parameterGroup,
 	})
-
-	awscdk.Aspects_Of(cluster).Add(NewServerlessV2ScalingAspect())
 
 	port := "3306"
 	pSlice := strings.SplitN(*cluster.ClusterEndpoint().SocketAddress(), ":", 2)
