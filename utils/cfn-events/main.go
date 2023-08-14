@@ -172,13 +172,16 @@ func getEventPhrase(t bool) string {
 }
 
 func (s *Stack) message() string {
-	action := "provisioning"
-	key := "(ready/failed/total)"
+	action := "Provisioning"
+	suffix := ""
+	if s.FailedResources > 0 {
+		suffix = fmt.Sprintf(" (%d failed, stack: %s)", s.FailedResources, s.Name)
+	}
+
 	value := s.ReadyCount
 	if os.Getenv(acornEventKey) == "delete" {
-		action = "deleting"
-		key = "(deleted/failed/total)"
+		action = "Deleting"
 		value = s.DeletedCount
 	}
-	return fmt.Sprintf("CFN Stack: %s %s, %d/%d/%d %s\n", s.Name, action, value, s.FailedResources, s.TotalCount, key)
+	return fmt.Sprintf("CloudFormation: %s resources (%d/%d ready)%s\n", action, value, s.TotalCount, suffix)
 }

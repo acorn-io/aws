@@ -1,3 +1,8 @@
+name:        "AWS Aurora Serverless Database"
+description: "AWS managed on-demand, autoscaling database"
+icon:        "icon.png"
+info:        localData.info
+
 args: {
 	// Name of the root/admin user. Default is admin.
 	adminUsername: "admin"
@@ -23,6 +28,7 @@ args: {
 }
 
 services: rds: {
+	name:    "Database Instance"
 	default: true
 	generated: job: "apply"
 }
@@ -30,6 +36,7 @@ services: rds: {
 services: "cdk-context": build: "../../utils/cdk"
 
 jobs: apply: {
+	name: "CloudFormation Provisioner"
 	build: {
 		context: ".."
 		buildArgs: MAIN: "serverless"
@@ -93,6 +100,7 @@ jobs: apply: {
 
 if args.username != "" {
 	jobs: "create-user": {
+		name:  "Create Additional User"
 		build: images.user.containerBuild
 		dependsOn: ["apply"]
 		env: {
@@ -106,6 +114,7 @@ if args.username != "" {
 	}
 
 	secrets: user: {
+		name: "User Credential"
 		type: "basic"
 		data: username: args.username
 	}
@@ -117,6 +126,30 @@ images: user: containerBuild: {
 }
 
 secrets: admin: {
+	name: "Admin Credential"
 	type: "generated"
 	params: job: "apply"
 }
+
+localData: info: """
+## Connection Information
+
+**Address**: @{services.rds.address}:@{services.rds.port.3306} \\
+**Admin User Name**: \(args.adminUsername) \\
+**Admin User Secret**: @{acorn.name}.admin
+
+## Sample Usage
+```typescript
+containers: app: {
+  image: "app-image"
+  env: {
+    DB_HOST: "@{@{service.}@{acorn.name}.address}"
+    DB_PORT: "@{@{service.}@{acorn.name}.port.3306}"
+    DB_NAME: "@{@{service.}@{acorn.name}.data.dbName}"
+    DB_USER: "@{@{service.}@{acorn.name}.secrets.admin.username}"
+    DB_PASS: "@{@{service.}@{acorn.name}.secrets.admin.password}"
+  }
+}
+
+```
+"""

@@ -1,3 +1,4 @@
+name: "CloudFormation Framework"
 services: context: {
 	default: true
 	generated: job: "context-generator"
