@@ -1,14 +1,45 @@
+name:        "Amazon Managed Prometheus"
+description: "Amazon Managed Prometheus workspace"
+info:        localData.info
+
 args: {
 	workspaceName: ""
 	tags: {}
 }
 
-services: amp: {
+services: "amp-admin": {
+	name:    "AMP Workspace Admin Access"
 	default: true
 	generated: job: "apply"
+	consumer: permissions: rules: [{
+		apiGroups: ["aws.acorn.io"]
+		verbs: ["aps:*"]
+		resources: ["*"]
+	}]
 }
-
-services: "cdk-context": build: "../utils/cdk"
+services: "amp-ro": {
+	name: "AMP Workspace Read Only Access"
+	generated: job: "apply"
+	consumer: permissions: rules: [{
+		apiGroups: ["aws.acorn.io"]
+		verbs: [
+			"aps:GetLabels",
+			"aps:GetMetricMetadata",
+			"aps:GetSeries",
+			"aps:QueryMetrics",
+		]
+		resources: ["*"]
+	}]
+}
+services: "amp-remote-write": {
+	name: "AMP Workspace Remote Write Access"
+	generated: job: "apply"
+	consumer: permissions: rules: [{
+		apiGroups: ["aws.acorn.io"]
+		verbs: ["aps:RemoteWrite"]
+		resources: ["*"]
+	}]
+}
 
 jobs: apply: {
 	build: {
@@ -17,15 +48,13 @@ jobs: apply: {
 			common: "../libs"
 			utils:  "../utils"
 		}
+
 	}
-	files: {
-		"/app/cdk.context.json": "@{services.cdk-context.data.cdkContext}"
-		"/app/config.json":      std.toJSON(args)
-	}
+	files: "/app/config.json": std.toJSON(args)
 	env: {
-		CDK_DEFAULT_ACCOUNT: "@{services.cdk-context.data.accountID}"
-		CDK_DEFAULT_REGION:  "@{services.cdk-context.data.region}"
-		VPC_ID:              "@{services.cdk-context.data.vpcID}"
+		CDK_DEFAULT_ACCOUNT: "@{secrets.aws-context.account-id}"
+		CDK_DEFAULT_REGION:  "@{secrets.aws-context.aws-region}"
+		VPC_ID:              "@{secrets.aws-context.vpc-id}"
 		ACORN_ACCOUNT:       "@{acorn.account}"
 		ACORN_NAME:          "@{acorn.name}"
 		ACORN_PROJECT:       "@{acorn.project}"
@@ -41,6 +70,7 @@ jobs: apply: {
 				"cloudformation:CreateChangeSet",
 				"cloudformation:DescribeChangeSet",
 				"cloudformation:DescribeStackEvents",
+				"cloudformation:DescribeStackResources",
 				"cloudformation:ExecuteChangeSet",
 				"cloudformation:PreviewStackUpdate",
 				"cloudformation:UpdateStack",
@@ -49,6 +79,50 @@ jobs: apply: {
 				"aps:*",
 			]
 			resources: ["*"]
+		}, {
+			apiGroup: "aws.acorn.io"
+			verbs: [
+				"ec2:DescribeAvailabilityZones",
+				"ec2:DescribeVpcs",
+				"ec2:DescribeSubnets",
+				"ec2:DescribeRouteTables",
+			]
+			resources: ["*"]
+		}, {
+			apiGroup: "api.acorn.io"
+			verbs: [
+				"create",
+			]
+			resources: ["events"]
 		},
+
 	]
 }
+
+secrets: "aws-context": {
+	name:     "AWS Context"
+	external: "context://aws"
+	type:     "opaque"
+	data: {
+		"account-id": ""
+		"vpc-id":     ""
+		"aws-region": ""
+	}
+}
+
+localData: info: """
+	## Connection Information
+	
+	### Admin
+	Provides complete access to this AMP Workspace.
+	** Remote Write URL**: @{service.amp-admin.data.url}api/v1/remote_write
+	** Query URL**: @{service.amp-admin.data.url}api/v1/query
+	
+	### Read Only
+	Provides read only access to this AMP Workspace.
+	** Query URL**: @{service.amp-ro.data.url}api/v1/query
+	
+	### Remote Write
+	Provides remote write access to this AMP Workspace.
+	** Remote Write URL**: @{service.amp-remote-write.data.url}api/v1/remote_write
+	"""
