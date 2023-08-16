@@ -16,7 +16,7 @@ type Config struct {
 
 func NewConfigFromEnv() (*Config, error) {
 	config := &Config{}
-	config.AccountID = os.Getenv("CDK_DEFAULT_ACCOUNT_ID")
+	config.AccountID = os.Getenv("CDK_DEFAULT_ACCOUNT")
 	config.Region = os.Getenv("CDK_DEFAULT_REGION")
 	config.VPCID = os.Getenv("VPC_ID")
 
