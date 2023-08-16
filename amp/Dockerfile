@@ -1,27 +1,22 @@
 FROM cgr.dev/chainguard/go as build
 
-WORKDIR /src
+WORKDIR /src/amp
 COPY --from=common . ../libs/
-COPY --from=utils ./cfn-events/ ../cfn-events/
 COPY . .
 
 RUN --mount=type=cache,target=/root/go/pkg \
     --mount=type=cache,target=/root/.cache/go-build \
-    go build -o amp . && \
-    cd ../cfn-events && \
-    go build -o cfn-events .
+    go build -o amp . 
 
+FROM ghcr.io/acorn-io/aws/utils/cdk-runner:v0.1.0 as cdk-runner
 FROM cgr.dev/chainguard/wolfi-base
-RUN apk add -U --no-cache nodejs bash busybox aws-cli jq curl zip && \
+RUN apk add -U --no-cache nodejs bash busybox jq && \
     apk del --no-cache wolfi-base apk-tools
-RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && \
-    unzip awscliv2.zip && \
-    ./aws/install
 RUN npm install -g aws-cdk
 WORKDIR /app
 COPY ./cdk.json ./
 COPY ./scripts ./scripts
 COPY --from=utils ./scripts/ ./scripts/
-COPY --from=build /src/amp .
-COPY --from=build /src/cfn-events/cfn-events .
-CMD [ "/app/scripts/apply.sh" ]
+COPY --from=cdk-runner /src/cdk-runner/cdk-runner .
+COPY --from=build /src/amp/amp .
+CMD [ "/app/cdk-runner" ]
