@@ -16,7 +16,7 @@ func getEnv(key, def string) string {
 }
 
 func GenerateCDKContext() error {
-	cdkOut := getEnv("CDK_CONTEXT_OUTFILE", "cdk.config.json")
+	cdkOut := getEnv("CDK_CONTEXT_OUTFILE", "cdk.context.json")
 
 	cfg, err := config.NewConfigFromEnv()
 	if err != nil {

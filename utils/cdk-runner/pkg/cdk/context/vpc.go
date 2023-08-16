@@ -16,6 +16,7 @@ type VpcNetworkPlugin struct {
 type vpcNetwork struct {
 	VpcId           string        `json:"vpcId"`
 	VpcCidrBlock    string        `json:"vpcCidrBlock"`
+	OwnerAccountId  string        `json:"ownerAccountId"`
 	AvailbiltyZones []string      `json:"availabilityZones"`
 	SubnetGroups    []subnetGroup `json:"subnetGroups"`
 }
@@ -62,6 +63,7 @@ func getVpcInfo(vpcId string, ctx context.Context, c *ec2.Client) (*vpcNetwork, 
 
 	if len(vpc.Vpcs) > 0 {
 		resp.VpcCidrBlock = *vpc.Vpcs[0].CidrBlock
+		resp.OwnerAccountId = *vpc.Vpcs[0].OwnerId
 	}
 
 	subnets, err := c.DescribeSubnets(ctx, &ec2.DescribeSubnetsInput{
