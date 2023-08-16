@@ -13,9 +13,11 @@ func Delete(c *Client, stackName string) error {
 
 	logrus.Infof("Deleting stack %s", stackName)
 
-	c.Client.DeleteStack(c.Ctx, &cloudformation.DeleteStackInput{
+	if _, err := c.Client.DeleteStack(c.Ctx, &cloudformation.DeleteStackInput{
 		StackName: aws.String(stackName),
-	})
+	}); err != nil {
+		return err
+	}
 
 	return deleteStackWaiter.Wait(c.Ctx, &cloudformation.DescribeStacksInput{
 		StackName: aws.String(stackName),

@@ -1,14 +1,18 @@
-services: queue: external: "sqs-queue"
+services: queue: build: {
+	context:   "../"
+	acornfile: "../Acornfile"
+}
 
-jobs: sender: {
-	build: context: "."
+containers: sender: {
+	build: context: "./sender"
+	consumes: ["queue"]
 	env: QUEUE_NAME: "@{services.queue.data.name}"
-	permissions: rules: [{
-		resources: ["@{services.queue.data.arn}"]
-		verbs: [
-			"sqs:SendMessage",
-			"sqs:GetQueueUrl",
-		]
-		apiGroup: "aws.acorn.io"
-	}]
+	env: QUEUE_URL:  "@{services.queue.data.url}"
+}
+
+containers: receiver: {
+	build: context: "./receiver"
+	consumes: ["queue"]
+	env: QUEUE_NAME: "@{services.queue.data.name}"
+	env: QUEUE_URL:  "@{services.queue.data.url}"
 }
