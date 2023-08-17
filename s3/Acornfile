@@ -7,9 +7,34 @@ args: {
 	tags: {}
 }
 
-services: {
-	"s3-bucket": generated: job: "apply"
-	"cdk-context": build: "../utils/cdk"
+services: "s3-bucket-read": {
+	name: "S3 Bucket Read Only"
+	generated: job: "apply"
+	consumer: permissions: rules: [{
+		apiGroups: ["aws.acorn.io"]
+		verbs: ["s3:Get*", "s3:List*"]
+		resources: ["*"]
+	}]
+}
+
+services: "s3-bucket-write": {
+	name: "S3 Bucket Write Only"
+	generated: job: "apply"
+	consumer: permissions: rules: [{
+		apiGroups: ["aws.acorn.io"]
+		verbs: ["s3:Put*", "s3:AbortMultipartUpload"]
+		resources: ["*"]
+	}]
+}
+
+services: "s3-bucket-admin": {
+	name: "S3 Bucket Admin"
+	generated: job: "apply"
+	consumer: permissions: rules: [{
+		apiGroups: ["aws.acorn.io"]
+		verbs: ["s3:*"]
+		resources: ["*"]
+	}]
 }
 
 jobs: apply: {
@@ -22,13 +47,12 @@ jobs: apply: {
 		}
 	}
 	files: {
-		"/app/cdk.context.json": "@{services.cdk-context.data.cdkContext}"
 		"/app/config.json":      std.toJSON(args)
 	}
 	env: {
-		CDK_DEFAULT_ACCOUNT: "@{services.cdk-context.data.accountID}"
-		CDK_DEFAULT_REGION:  "@{services.cdk-context.data.region}"
-		VPC_ID:              "@{services.cdk-context.data.vpcID}"
+		CDK_DEFAULT_ACCOUNT: "@{secrets.aws-context.account-id}"
+		CDK_DEFAULT_REGION:  "@{secrets.aws-context.aws-region}"
+		VPC_ID:              "@{secrets.aws-context.vpc-id}"
 		ACORN_ACCOUNT:       "@{acorn.account}"
 		ACORN_NAME:          "@{acorn.name}"
 		ACORN_PROJECT:       "@{acorn.project}"
@@ -66,4 +90,31 @@ jobs: apply: {
 		]
 		resources: ["events"]
 	}]
+}
+
+secrets: "aws-context": {
+	name: "AWS Context",
+	external: "context://aws"
+	type: "opaque"
+	data: {
+		"account-id": ""
+		"vpc-id": ""
+		"aws-region": ""
+	}
+
+	localData: info: """
+		## Connection Information
+
+		### Admin
+		Provides complete access to this S3 bucket.
+		** URL **: @{service.s3-bucket-admin.data.url}
+
+		### Read Only
+		Read only access to this S3 bucket.
+		** URL **: @{service.s3-bucket-read.data.url}
+
+		### Write Only
+		Write only access to this S3 bucket.
+		** URL **: @{service.s3-bucket-write.data.url}
+	"""
 }
