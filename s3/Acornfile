@@ -13,7 +13,7 @@ services: "readwrite": {
 	generated: job: "apply"
 	consumer: permissions: rules: [{
 		apiGroups: ["aws.acorn.io"]
-		verbs: ["s3:Get*", "s3:List*", "s3:Put*", "s3:AbortMultipartUpload"]
+		verbs: ["s3:Get*", "s3:List*", "s3:Put*", "s3:AbortMultipartUpload", "s3:Delete*"]
 		resources: ["*"]
 	}]
 }
@@ -121,7 +121,7 @@ secrets: "aws-context": {
 		** URL **: @{service.admin.data.url}
 
     ### Read and Write
-		Read and write access to this S3 bucket.
+		Read, write, and delete data in this S3 bucket.
 		** URL **: @{service.readwrite.data.url}
 
 		### Read Only
