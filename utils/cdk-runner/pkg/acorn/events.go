@@ -147,6 +147,10 @@ func (s *Stack) countsEqual() bool {
 }
 
 func (sw *StackWatcher) emit() {
+	if sw.Stack.countsEqual() {
+		return
+	}
+
 	e := &apiv1.Event{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Event",
@@ -170,9 +174,6 @@ func (sw *StackWatcher) emit() {
 		logrus.Error(err)
 	}
 
-	if sw.Stack.countsEqual() {
-		return
-	}
 	fmt.Print(sw.Stack.message())
 }
 

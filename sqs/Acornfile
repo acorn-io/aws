@@ -1,3 +1,8 @@
+name:        "AWS SQS Queue"
+description: "AWS SQS queue"
+icon:        "icon.png"
+info:        "\(localData.info)"
+
 args: {
 	// Name of queue. Defaults to acorn.externalID
 	queueName: ""
@@ -13,14 +18,47 @@ args: {
 	maxReceiveCount: 0
 	// KMS Key arn to use for encryption. Default is to use Amazon SQS key
 	encryptionMasterKey: ""
-	// Access policy for the queue. Default is to only allow the queue owner
-	accessPolicies: [...localData.#accessPolicy] | *[]
 	// Key value pairs to apply to all AWS resources created by this Acorn
 	tags: {}
 }
 
-services: "cdk-context": build: "../utils/cdk"
-services: "sqs-queue": generated: job: "apply"
+services: {
+	admin: {
+		generated: job: "apply"
+		default: true
+		consumer: permissions: rules: [{
+			apiGroup: "aws.acorn.io"
+			verbs: [
+				"sqs:*",
+			]
+			resources: ["*"]
+		}]
+	}
+	publisher: {
+		generated: job: "apply"
+		consumer: permissions: rules: [{
+			apiGroup: "aws.acorn.io"
+			verbs: [
+				"sqs:GetQueueUrl",
+				"sqs:SendMessage",
+			]
+			resources: ["*"]
+		}]
+	}
+	subscriber: {
+		generated: job: "apply"
+		consumer: permissions: rules: [{
+			apiGroup: "aws.acorn.io"
+			verbs: [
+				"sqs:ReceiveMessage",
+				"sqs:DeleteMessage",
+				"sqs:ChangeMessageVisibility",
+				"sqs:GetQueueUrl",
+			]
+			resources: ["*"]
+		}]
+	}
+}
 
 jobs: apply: {
 	build: {
@@ -30,15 +68,12 @@ jobs: apply: {
 			utils:  "../utils"
 		}
 	}
-	files: {
-		"/app/cdk.context.json": "@{services.cdk-context.data.cdkContext}"
-		"/app/config.json":      std.toJSON(args)
-	}
+	files: "/app/config.json": std.toJSON(args)
 	events: ["create", "update", "delete"]
 	env: {
-		CDK_DEFAULT_ACCOUNT: "@{services.cdk-context.data.accountID}"
-		CDK_DEFAULT_REGION:  "@{services.cdk-context.data.region}"
-		VPC_ID:              "@{services.cdk-context.data.vpcID}"
+		CDK_DEFAULT_ACCOUNT: "@{secrets.aws-context.account-id}"
+		CDK_DEFAULT_REGION:  "@{secrets.aws-context.aws-region}"
+		VPC_ID:              "@{secrets.aws-context.vpc-id}"
 		ACORN_ACCOUNT:       "@{acorn.account}"
 		ACORN_NAME:          "@{acorn.name}"
 		ACORN_PROJECT:       "@{acorn.project}"
@@ -66,22 +101,47 @@ jobs: apply: {
 			"create",
 		]
 		resources: ["events"]
+	}, {
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"ec2:DescribeAvailabilityZones",
+			"ec2:DescribeVpcs",
+			"ec2:DescribeSubnets",
+			"ec2:DescribeRouteTables",
+		]
+		resources: ["*"]
 	}]
 }
 
-localData: #accessPolicy: {
-	effect?: string
-	actions?: [string]
-	principals?: [...localData.#awsPrincipal]
-	sid?: string
-	conditions?: [string]: {}
-	notActions?: [string]
-	notPrincipals?: [...localData.#awsPrincipal]
-	notResources?: [string]
-	resources?: [string]
+secrets: "aws-context": {
+	external: "context://aws"
+	type:     "opaque"
+	data: {
+		"aws-region": ""
+		"account-id": ""
+		"vpc-id":     ""
+	}
 }
 
-localData: #awsPrincipal: {
-	principalType: string
-	identifiers: [string]
-}
+localData: info: """
+	## Connection Information
+
+	**URL**: @{services.sqs.data.url}
+	**Queue Name**: @{services.sqs.data.name}
+	**ARN**: @{services.sqs.data.arn}
+
+	## Sample Usage
+	```typescript
+	containers: app: {
+		image: "app-image"
+		consumes: ["sqs"]
+		env: {
+			QUEUE_URL: "@{services.sqs.data.url}"
+		}
+	}
+	```
+
+	## Example
+	
+	[Example pub-sub SQS Queue](https://github.com/acorn-io/aws/tree/master/sqs/examples)
+	"""

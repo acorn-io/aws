@@ -7,6 +7,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -72,19 +73,7 @@ func main() {
 
 	client := sqs.NewFromConfig(cfg)
 
-	// Get URL of queue
-	gQInput := &sqs.GetQueueUrlInput{
-		QueueName: queue,
-	}
-
-	result, err := GetQueueURL(context.TODO(), client, gQInput)
-	if err != nil {
-		fmt.Println("Got an error getting the queue URL:")
-		fmt.Println(err)
-		return
-	}
-
-	queueURL := result.QueueUrl
+	queueURL := aws.String(os.Getenv("QUEUE_URL"))
 
 	sMInput := &sqs.SendMessageInput{
 		DelaySeconds: 10,
