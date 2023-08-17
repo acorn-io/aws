@@ -3,6 +3,7 @@ package context
 import (
 	"context"
 
+	"github.com/acorn-io/aws/utils/cdk-runner/pkg/aws/utils"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 )
@@ -23,6 +24,9 @@ func NewContext(account, region string) (*CdkContext, error) {
 
 	cfg.Region = region
 	client := ec2.NewFromConfig(cfg)
+	if err := utils.WaitForClientRole(ctx); err != nil {
+		return nil, err
+	}
 
 	return &CdkContext{
 		Ec2Client: client,

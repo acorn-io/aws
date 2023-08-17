@@ -7,11 +7,12 @@ import (
 	"strings"
 	"time"
 
+	acrnCfnClient "github.com/acorn-io/aws/utils/cdk-runner/pkg/aws/cloudformation"
+	"github.com/acorn-io/aws/utils/cdk-runner/pkg/aws/utils"
 	apiv1 "github.com/acorn-io/runtime/pkg/apis/api.acorn.io/v1"
 	internalv1 "github.com/acorn-io/runtime/pkg/apis/internal.acorn.io/v1"
 	kclient "github.com/acorn-io/runtime/pkg/k8sclient"
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/sirupsen/logrus"
@@ -48,7 +49,7 @@ type Counts struct {
 }
 
 func StartEventWatcher(ctx context.Context, stackName string) {
-	cfg, err := config.LoadDefaultConfig(ctx)
+	client, err := acrnCfnClient.NewClient(ctx)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -58,7 +59,11 @@ func StartEventWatcher(ctx context.Context, stackName string) {
 		logrus.Fatal(err)
 	}
 
-	awsClient := cloudformation.NewFromConfig(cfg)
+	awsClient := client.Client
+
+	if err := utils.WaitForClientRole(ctx); err != nil {
+		logrus.Fatal(err)
+	}
 
 	sw := &StackWatcher{
 		Stack: &Stack{
