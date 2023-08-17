@@ -15,7 +15,22 @@ uri="${no_proto#*$address}"
 
 cat > /run/secrets/output<<EOF
 services: {
-  "s3-bucket-read": {
+  "readwrite": {
+    address: "${address}"
+    consumer: permissions: rules: [{
+      apiGroups: ["aws.acorn.io"]
+      verbs: ["s3:Get*", "s3:List*", "s3:Put*", "s3:AbortMultipartUpload"]
+      resources: ["${arn}"]
+    }]
+    data: {
+      arn: "${arn}"
+      arn: "${url}"
+      proto: "${proto}"
+      uri: "${uri}"
+    }
+  }
+
+  "readonly": {
     address: "${address}"
     consumer: permissions: rules: [{
       apiGroups: ["aws.acorn.io"]
@@ -30,7 +45,7 @@ services: {
     }
   }
 
-  "s3-bucket-write": {
+  "writeonly": {
     address: "${address}"
     consumer: permissions: rules: [{
       apiGroups: ["aws.acorn.io"]
@@ -45,7 +60,7 @@ services: {
     }
   }
 
-  "s3-bucket-admin": {
+  "admin": {
     address: "${address}"
     consumer: permissions: rules: [{
       apiGroups: ["aws.acorn.io"]
