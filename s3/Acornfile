@@ -95,6 +95,15 @@ jobs: apply: {
 		]
 		resources: ["*"]
 	}, {
+			apiGroup: "aws.acorn.io"
+			verbs: [
+				"ec2:DescribeAvailabilityZones",
+				"ec2:DescribeVpcs",
+				"ec2:DescribeSubnets",
+				"ec2:DescribeRouteTables",
+			]
+			resources: ["*"]
+		}, {
 		apiGroup: "api.acorn.io"
 		verbs: [
 			"create",
@@ -112,24 +121,24 @@ secrets: "aws-context": {
 		"vpc-id": ""
 		"aws-region": ""
 	}
-
-	localData: info: """
-		## Connection Information
-
-		### Admin
-		Provides complete access to this S3 bucket.
-		** URL **: @{service.admin.data.url}
-
-    ### Read and Write
-		Read, write, and delete data in this S3 bucket.
-		** URL **: @{service.readwrite.data.url}
-
-		### Read Only
-		Read only access to this S3 bucket.
-		** URL **: @{service.readonly.data.url}
-
-		### Write Only
-		Write only access to this S3 bucket.
-		** URL **: @{service.writeonly.data.url}
-	"""
 }
+
+localData: info: """
+		 ## Connection Information
+
+		 ### Admin
+		 Provides complete access to this S3 bucket.
+		 ** URL **: @{service.admin.data.url}
+
+		 ### Read and Write
+		 Read, write, and delete data in this S3 bucket.
+		 ** URL **: @{service.readwrite.data.url}
+
+		 ### Read Only
+		 Read only access to this S3 bucket.
+		 ** URL **: @{service.readonly.data.url}
+
+		 ### Write Only
+		 Write only access to this S3 bucket.
+		 ** URL **: @{service.writeonly.data.url}
+		 """
