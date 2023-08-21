@@ -1,0 +1,14 @@
+services: bucket: build: {
+	context:   "../../"
+	acornfile: "../../Acornfile"
+}
+
+containers: plaintext: {
+	build: context: "./"
+	ports: publish: ["8080/http"]
+	consumes: ["bucket.admin"]
+	env: {
+		BUCKET_URL: "@{services.bucket.data.url}"
+		BUCKET_NAME: "@{services.bucket.data.name}"
+	}
+}

@@ -6,8 +6,9 @@ if [ ! -f outputs.json ]; then
 fi
 
 # Render Output
-url=$(jq -r '.[] | select(.OutputKey=="AMPEndpointURL")|.OutputValue' outputs.json)
-arn=$(jq -r '.[]| select(.OutputKey=="AMPWorkspaceArn")|.OutputValue' outputs.json)
+url=$(jq -r '.[] | select(.OutputKey=="BucketURL")|.OutputValue' outputs.json)
+arn=$(jq -r '.[]| select(.OutputKey=="BucketARN")|.OutputValue' outputs.json)
+name=$(jq -r '.[]| select(.OutputKey=="BucketName")|.OutputValue' outputs.json)
 proto="${url%%://*}"
 no_proto="${url#*://}"
 address="${no_proto%%/*}"
@@ -23,8 +24,9 @@ services: {
       resources: ["${arn}"]
     }]
     data: {
+      name: "${name}"
       arn: "${arn}"
-      arn: "${url}"
+      url: "${url}"
       proto: "${proto}"
       uri: "${uri}"
     }
@@ -38,8 +40,9 @@ services: {
       resources: ["${arn}"]
     }]
     data: {
+      name: "${name}"
       arn: "${arn}"
-      arn: "${url}"
+      url: "${url}"
       proto: "${proto}"
       uri: "${uri}"
     }
@@ -53,8 +56,9 @@ services: {
       resources: ["${arn}"]
     }]
     data: {
+      name: "${name}"
       arn: "${arn}"
-      arn: "${url}"
+      url: "${url}"
       proto: "${proto}"
       uri: "${uri}"
     }
@@ -68,8 +72,9 @@ services: {
       resources: ["${arn}"]
     }]
     data: {
+      name: "${name}"
       arn: "${arn}"
-      arn: "${url}"
+      url: "${url}"
       proto: "${proto}"
       uri: "${uri}"
     }
