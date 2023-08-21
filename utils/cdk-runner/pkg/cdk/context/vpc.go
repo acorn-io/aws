@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/acorn-io/aws/utils/cdk-runner/pkg/aws/utils"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
 	"github.com/aws/aws-sdk-go-v2/service/ec2/types"
@@ -53,10 +52,6 @@ func getVpcInfo(vpcId string, ctx context.Context, c *ec2.Client) (*vpcNetwork, 
 		VpcId:           vpcId,
 		SubnetGroups:    []subnetGroup{},
 		AvailbiltyZones: []string{},
-	}
-
-	if err := utils.WaitForClientRole(ctx); err != nil {
-		return nil, err
 	}
 
 	vpc, err := c.DescribeVpcs(ctx, &ec2.DescribeVpcsInput{

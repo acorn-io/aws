@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/acorn-io/aws/utils/cdk-runner/pkg/acorn"
 	"github.com/acorn-io/aws/utils/cdk-runner/pkg/aws/cloudformation"
 	"github.com/acorn-io/aws/utils/cdk-runner/pkg/cdk"
+	_ "github.com/acorn-io/baaah/pkg/logrus"
 	"github.com/sirupsen/logrus"
 )
 
@@ -70,9 +72,40 @@ func runServiceAcornRenderExec(executable string) error {
 
 }
 
+func waitForStackToFinishTransition(stackName string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Minute)
+	defer cancel()
+	client, err := cloudformation.NewClient(ctx)
+	if err != nil {
+		return err
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("stack %s did not finish transitioning after 60 minutes", stackName)
+		default:
+			t, status, err := cloudformation.StackOperationInProgress(client, stackName)
+			if err != nil {
+				return err
+			}
+			if t {
+				logrus.Infof("Waiting: stack %s is transitioning with status %s", stackName, status)
+				time.Sleep(time.Second * 30)
+				continue
+			}
+			return nil
+		}
+	}
+}
+
 func main() {
 	stackName := os.Getenv("ACORN_EXTERNAL_ID")
 	event := os.Getenv("ACORN_EVENT")
+
+	if err := waitForStackToFinishTransition(stackName); err != nil {
+		logrus.Fatal(err)
+	}
 
 	if event == "create" || event == "update" {
 		if err := cdk.GenerateTemplateFile("cfn.yaml"); err != nil {

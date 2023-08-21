@@ -3,11 +3,13 @@ module github.com/acorn-io/aws/utils/cdk-runner
 go 1.20
 
 require (
+	github.com/acorn-io/baaah v0.0.0-20230809195515-5b03d4cd75f0
 	github.com/acorn-io/runtime v0.8.0-rc4
 	github.com/aws/aws-sdk-go-v2 v1.20.1
 	github.com/aws/aws-sdk-go-v2/config v1.18.33
 	github.com/aws/aws-sdk-go-v2/service/cloudformation v1.34.2
 	github.com/aws/aws-sdk-go-v2/service/ec2 v1.111.0
+	github.com/aws/aws-sdk-go-v2/service/sts v1.21.2
 	github.com/awslabs/goformation v1.4.1
 	github.com/sirupsen/logrus v1.9.3
 	k8s.io/apimachinery v0.27.3
@@ -19,7 +21,6 @@ replace k8s.io/client-go => k8s.io/client-go v0.27.3
 require (
 	cuelang.org/go v0.5.0 // indirect
 	github.com/acorn-io/aml v0.0.0-20230814072513-12acbd5f883c // indirect
-	github.com/acorn-io/baaah v0.0.0-20230809195515-5b03d4cd75f0 // indirect
 	github.com/acorn-io/mink v0.0.0-20230804175412-8d121aae112c // indirect
 	github.com/agnivade/levenshtein v1.1.1 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.32 // indirect
@@ -30,10 +31,10 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.32 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sso v1.13.2 // indirect
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.15.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.21.2 // indirect
 	github.com/aws/smithy-go v1.14.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
+	github.com/bombsimon/logrusr/v4 v4.0.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cockroachdb/apd/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

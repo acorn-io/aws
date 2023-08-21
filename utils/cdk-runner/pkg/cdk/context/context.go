@@ -2,10 +2,13 @@ package context
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	"github.com/acorn-io/aws/utils/cdk-runner/pkg/aws/utils"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/sirupsen/logrus"
 )
 
 type CdkContext struct {
@@ -22,11 +25,12 @@ func NewContext(account, region string) (*CdkContext, error) {
 		return nil, err
 	}
 
-	cfg.Region = region
-	client := ec2.NewFromConfig(cfg)
 	if err := utils.WaitForClientRole(ctx); err != nil {
 		return nil, err
 	}
+
+	cfg.Region = region
+	client := ec2.NewFromConfig(cfg)
 
 	return &CdkContext{
 		Ec2Client: client,
@@ -43,4 +47,21 @@ func NewContext(account, region string) (*CdkContext, error) {
 
 func (ctx *CdkContext) AddPlugin(p PluginProvider) {
 	ctx.Plugins = append(ctx.Plugins, p)
+}
+
+func (ctx *CdkContext) ClientReady() error {
+	timeOutCtx, cancel := context.WithTimeout(ctx.Context, time.Second*30)
+	defer cancel()
+	logrus.Infof("Checking EC2 client is ready..")
+	for {
+		select {
+		case <-timeOutCtx.Done():
+			return fmt.Errorf("AWS EC2 client does not have permission to describe availability zones")
+		default:
+			if _, err := ctx.Ec2Client.DescribeAvailabilityZones(ctx.Context, &ec2.DescribeAvailabilityZonesInput{}); err != nil {
+				continue
+			}
+			return nil
+		}
+	}
 }

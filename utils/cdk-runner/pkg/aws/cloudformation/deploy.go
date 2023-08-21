@@ -2,6 +2,7 @@ package cloudformation
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -12,9 +13,20 @@ import (
 )
 
 const (
-	StatusFailed    = "FAILED"
-	ReasonNoChanges = "The submitted information didn't contain changes. Submit different information to create a change set."
-	ReasonNoUpdates = "No updates are to be performed."
+	StatusFailed                   = "FAILED"
+	ReasonNoChanges                = "The submitted information didn't contain changes. Submit different information to create a change set."
+	ReasonNoUpdates                = "No updates are to be performed."
+	CdkRunnerDeletionProtectionTag = "acorn.io/cdk-runner/deletion-protection"
+	DeletionProtectionEnvKey       = "CDK_RUNNER_DELETE_PROTECTION"
+)
+
+var (
+	acornTags = map[string]string{
+		"acorn.io/managed":      "true",
+		"acorn.io/project-name": os.Getenv("ACORN_PROJECT"),
+		"acorn.io/acorn-name":   os.Getenv("ACORN_NAME"),
+		"acorn.io/account-id":   os.Getenv("ACORN_ACCOUNT"),
+	}
 )
 
 func DeployStack(c *Client, stackName, template string) error {
@@ -59,6 +71,8 @@ func createAndWaitForChangeset(c *Client, stack *CfnStack, template string) (*cl
 		changeSetType = types.ChangeSetTypeUpdate
 	}
 
+	tags := getTags()
+
 	logrus.Infof("Creating changeset for: %s", stack.StackName)
 	changeSetOutput, err := c.Client.CreateChangeSet(c.Ctx, &cloudformation.CreateChangeSetInput{
 		ChangeSetName: aws.String(fmt.Sprintf("%s-%d", stack.StackName, time.Now().Unix())),
@@ -69,6 +83,7 @@ func createAndWaitForChangeset(c *Client, stack *CfnStack, template string) (*cl
 			types.CapabilityCapabilityNamedIam,
 		},
 		ChangeSetType: changeSetType,
+		Tags:          tags,
 	})
 	if err != nil {
 		return nil, err
@@ -137,4 +152,22 @@ func executeChangeSetAndWait(c *Client, changeSetId string, stack *CfnStack) err
 	return createWaiter.Wait(c.Ctx, &cloudformation.DescribeStacksInput{
 		StackName: aws.String(stack.StackName),
 	}, time.Minute*60)
+}
+
+func getTags() []types.Tag {
+	tags := []types.Tag{}
+	for k, v := range acornTags {
+		tags = append(tags, types.Tag{
+			Key:   aws.String(k),
+			Value: aws.String(v),
+		})
+	}
+	deleteProtection := os.Getenv(DeletionProtectionEnvKey)
+	if deleteProtection != "" {
+		tags = append(tags, types.Tag{
+			Key:   aws.String(CdkRunnerDeletionProtectionTag),
+			Value: aws.String(deleteProtection),
+		})
+	}
+	return tags
 }
