@@ -14,6 +14,10 @@ func Render(cfg *config.Config) (map[string]any, error) {
 	vpcPlugin := NewVpcPlugin(cfg.VPCID)
 	cdkContext.AddPlugin(vpcPlugin)
 
+	if err := cdkContext.ClientReady(); err != nil {
+		return nil, err
+	}
+
 	return ToData(cdkContext)
 }
 

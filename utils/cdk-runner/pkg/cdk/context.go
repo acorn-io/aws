@@ -1,10 +1,12 @@
 package cdk
 
 import (
+	"context"
 	"os"
 
+	"github.com/acorn-io/aws/utils/cdk-runner/pkg/aws/utils"
 	"github.com/acorn-io/aws/utils/cdk-runner/pkg/cdk/config"
-	"github.com/acorn-io/aws/utils/cdk-runner/pkg/cdk/context"
+	cdkContext "github.com/acorn-io/aws/utils/cdk-runner/pkg/cdk/context"
 )
 
 func getEnv(key, def string) string {
@@ -18,12 +20,17 @@ func getEnv(key, def string) string {
 func GenerateCDKContext() error {
 	cdkOut := getEnv("CDK_CONTEXT_OUTFILE", "cdk.context.json")
 
+	ctx := context.Background()
+	if err := utils.WaitForClientRole(ctx); err != nil {
+		return err
+	}
+
 	cfg, err := config.NewConfigFromEnv()
 	if err != nil {
 		return err
 	}
 
-	contextData, err := context.Render(cfg)
+	contextData, err := cdkContext.Render(cfg)
 	if err != nil {
 		return err
 	}

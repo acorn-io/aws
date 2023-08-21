@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
+	"github.com/sirupsen/logrus"
 )
 
 type AzPlugin struct{}
@@ -20,6 +21,7 @@ func (azp *AzPlugin) Render(ctx *CdkContext) (map[string]any, error) {
 }
 
 func getAzInfo(ctx context.Context, c *ec2.Client) ([]string, error) {
+	logrus.Info("Calling DescribeAvailabilityZones in context azs.go")
 	azs, err := c.DescribeAvailabilityZones(ctx, &ec2.DescribeAvailabilityZonesInput{})
 	if err != nil {
 		return nil, err

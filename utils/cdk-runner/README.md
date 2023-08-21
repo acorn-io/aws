@@ -20,6 +20,8 @@ The following environment variables are required:
 ACORN_EVENT (create, update, delete)
 ACORN_EXTERNAL_ID - Will be used to name the CloudFormation stack
 
+See [Needed Environment Variables](#needed-environment-variables) for more details.
+
 ## Example
 
 complete examples can be found in the AWS service Acorns.
@@ -109,3 +111,17 @@ secrets: "aws-context": {
  }
 }
 ```
+
+## Needed Environment Variables
+
+- ACORN_EVENT - create, update, delete - This is the event being run and is set by Acorn on the job.
+- ACORN_EXTERNAL_ID - This is the external ID of the Acorn and is set by Acorn on the job.
+- ACORN_ACCOUNT - This is the account ID of the Acorn and is set by Acorn on the job.
+- ACORN_NAME - This is the name of the Acorn and is set by Acorn on the job.
+- ACORN_PROJECT - This is the project of the Acorn and is set by Acorn on the job.
+- AWS_ROLE_ARN - Set by Acorn identity.
+- CDK_DEFAULT_ACCOUNT: AWS account id, required.
+- CDK_DEFAULT_REGION:  AWS region, required.
+- VPC_ID:              VPC ID, required.
+
+- CDK_RUNNER_DELETE_PROTECTION - Optional, a boolean value that will tag the stack with delete protection enabled. This will be checked when deleting the stack and will not attempt to do so unless it is cleared. To clear it, the Acorn must be updated to disable the deletion protection.

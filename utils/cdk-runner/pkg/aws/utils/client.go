@@ -17,9 +17,8 @@ const (
 )
 
 func WaitForClientRole(ctx context.Context) error {
-	timeOut := time.After(time.Second * 30)
-	ticker := time.NewTicker(time.Second * 1)
-	defer ticker.Stop()
+	timeOutCtx, cancel := context.WithTimeout(ctx, time.Second*30)
+	defer cancel()
 
 	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
@@ -34,14 +33,15 @@ func WaitForClientRole(ctx context.Context) error {
 
 	for {
 		select {
-		case <-timeOut:
+		case <-timeOutCtx.Done():
 			return fmt.Errorf("AWS CloudFormation client role not ready after %d seconds", 30)
-		case <-ticker.C:
+		default:
 			if _, err := c.AssumeRoleWithWebIdentity(ctx, &sts.AssumeRoleWithWebIdentityInput{
 				RoleArn:          aws.String(os.Getenv(AwsRoleArnEnvKey)),
 				RoleSessionName:  aws.String(os.Getenv(AwsSessionEnvKey)),
 				WebIdentityToken: aws.String(string(token)),
 			}); err != nil {
+				time.Sleep(time.Second * 2)
 				continue
 			}
 			return nil
