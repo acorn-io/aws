@@ -9,7 +9,6 @@ args: {
 
 services: "readwrite": {
 	name: "S3 Bucket Read Only"
-	default: true
 	generated: job: "apply"
 	consumer: permissions: rules: [{
 		apiGroups: ["aws.acorn.io"]
@@ -40,6 +39,7 @@ services: "writeonly": {
 
 services: "admin": {
 	name: "S3 Bucket Admin"
+	default: true
 	generated: job: "apply"
 	consumer: permissions: rules: [{
 		apiGroups: ["aws.acorn.io"]
