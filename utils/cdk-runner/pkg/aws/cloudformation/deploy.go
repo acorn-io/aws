@@ -41,6 +41,8 @@ func DeployStack(c *Client, stackName, template string) error {
 		return err
 	}
 
+	go stack.LogEvents(c)
+
 	// Before doing anything see if we are in a failed state that can be recovered.
 	if err := stack.AutoRecover(c); err != nil {
 		return err

@@ -46,6 +46,15 @@ func Delete(c *Client, stackName string) error {
 		return err
 	}
 
+	stack, err := GetStack(c, stackName)
+	if err != nil && stack.Exists {
+		return err
+	} else if !stack.Exists {
+		// Return nil, since we wanted it deleted.
+		return nil
+	}
+	go stack.LogEvents(c)
+
 	return deleteStackWaiter.Wait(c.Ctx, &cloudformation.DescribeStacksInput{
 		StackName: aws.String(stackName),
 	}, time.Minute*60)
