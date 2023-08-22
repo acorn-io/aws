@@ -21,7 +21,11 @@ services: {
     consumer: permissions: rules: [{
       apiGroups: ["aws.acorn.io"]
       verbs: ["s3:Get*", "s3:List*", "s3:Put*", "s3:AbortMultipartUpload"]
-      resources: ["${arn}"]
+      resources: ["${arn}", "${arn}/*"]
+    }, {
+      apiGroups: ["aws.acorn.io"]
+      verbs: ["s3:ListBuckets"]
+      resources: ["*"]
     }]
     data: {
       name: "${name}"
@@ -37,7 +41,7 @@ services: {
     consumer: permissions: rules: [{
       apiGroups: ["aws.acorn.io"]
       verbs: ["s3:Get*", "s3:List*"]
-      resources: ["${arn}"]
+      resources: ["${arn}", "${arn}/*"]
     }]
     data: {
       name: "${name}"
@@ -53,7 +57,7 @@ services: {
     consumer: permissions: rules: [{
       apiGroups: ["aws.acorn.io"]
       verbs: ["s3:Put*", "s3:AbortMultipartUpload"]
-      resources: ["${arn}"]
+      resources: ["${arn}", "${arn}/*"]
     }]
     data: {
       name: "${name}"
@@ -69,7 +73,11 @@ services: {
     consumer: permissions: rules: [{
       apiGroups: ["aws.acorn.io"]
       verbs: ["s3:*"]
-      resources: ["${arn}"]
+      resources: ["${arn}", "${arn}/*"]
+    }, {
+      apiGroups: ["aws.acorn.io"]
+      verbs: ["s3:ListBuckets"]
+      resources: ["*"]
     }]
     data: {
       name: "${name}"
