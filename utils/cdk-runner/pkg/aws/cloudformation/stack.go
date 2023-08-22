@@ -1,8 +1,13 @@
 package cloudformation
 
 import (
+	"fmt"
+	"os"
+	"sort"
 	"strings"
+	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	awsCfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
 	"github.com/awslabs/goformation"
@@ -64,6 +69,13 @@ func (s *CfnStack) AutoRecover(c *Client) error {
 		}
 	}
 
+	if s.Current.StackStatus == types.StackStatusRollbackComplete && s.Current.DeletionTime != nil {
+		logrus.Info("Cleaning up rolled back and deleted stack, will delete before continuing")
+		if err := Delete(c, s.StackName); err != nil {
+			return err
+		}
+	}
+
 	if s.Current.StackStatus == types.StackStatusRollbackFailed {
 		logrus.Info("Cleaning up failed rollback/create will rollback before continuing")
 		if err := Rollback(c, s.StackName); err != nil {
@@ -84,6 +96,41 @@ func StackOperationInProgress(c *Client, stackName string) (bool, string, error)
 		return false, "", err
 	}
 	return strings.Contains(string(stack.Current.StackStatus), "IN_PROGRESS"), string(stack.Current.StackStatus), nil
+}
+
+func (s *CfnStack) LogEvents(c *Client) {
+	var startTime time.Time
+	termMessage := strings.Builder{}
+	for {
+		events, err := c.Client.DescribeStackEvents(c.Ctx, &awsCfn.DescribeStackEventsInput{
+			StackName: &s.StackName,
+		})
+		if err != nil && strings.Contains(err.Error(), "does not exist") {
+			time.Sleep(5 * time.Second)
+			continue
+		} else if err != nil {
+			logrus.Error(err)
+			continue
+		}
+
+		sort.SliceStable(events.StackEvents, func(i, j int) bool {
+			timeI := *events.StackEvents[i].Timestamp
+			timeJ := *events.StackEvents[j].Timestamp
+			return timeI.Before(timeJ)
+		})
+
+		for _, event := range events.StackEvents {
+			if event.Timestamp.After(startTime) {
+				logrus.Infof("%s %s %s %s", event.Timestamp.Format(time.RFC3339), aws.ToString(event.LogicalResourceId), event.ResourceStatus, aws.ToString(event.ResourceStatusReason))
+				if event.ResourceStatus == types.ResourceStatusCreateFailed || event.ResourceStatus == types.ResourceStatusUpdateFailed || event.ResourceStatus == types.ResourceStatusDeleteFailed {
+					termMessage.WriteString(fmt.Sprintf("%s %s %s\n", aws.ToString(event.LogicalResourceId), event.ResourceStatus, aws.ToString(event.ResourceStatusReason)))
+				}
+				startTime = *event.Timestamp
+			}
+		}
+		os.WriteFile("/dev/termination-log", []byte(termMessage.String()), 0644)
+		time.Sleep(5 * time.Second)
+	}
 }
 
 func (s *CfnStack) GetCurrentTemplate(c *Client) (*cloudformation.Template, error) {

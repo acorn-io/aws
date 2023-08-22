@@ -35,10 +35,11 @@ type StackWatcher struct {
 }
 
 type Stack struct {
-	Name          string
-	Transitioning bool
-	CurrentCounts Counts
-	PrevCounts    Counts
+	Name           string
+	Transitioning  bool
+	FailedMessages []string
+	CurrentCounts  Counts
+	PrevCounts     Counts
 }
 
 type Counts struct {
@@ -85,7 +86,6 @@ func StartEventWatcher(ctx context.Context, stackName string) {
 	}
 
 	logrus.Infof("Stack %s is ready", sw.Stack.Name)
-
 }
 
 func (sw *StackWatcher) watchStack() error {
@@ -99,7 +99,7 @@ func (sw *StackWatcher) watchStack() error {
 				StackName: aws.String(sw.Stack.Name),
 			})
 			if err != nil && strings.Contains(err.Error(), "does not exist") {
-				logrus.Infof("Waiting for Stack %s to be created", sw.Stack.Name)
+				logrus.Infof("Stack %s does not exist. Checking again in 10 seconds.", sw.Stack.Name)
 				time.Sleep(10 * time.Second)
 				continue
 			} else if err != nil {
@@ -118,6 +118,7 @@ func (sw *StackWatcher) watchStack() error {
 				}
 				if resource.ResourceStatus == types.ResourceStatusCreateFailed || resource.ResourceStatus == types.ResourceStatusUpdateFailed || resource.ResourceStatus == types.ResourceStatusDeleteFailed {
 					sw.Stack.CurrentCounts.FailedResources++
+					sw.Stack.FailedMessages = append(sw.Stack.FailedMessages, fmt.Sprintf("Resource: %s is in %s, reason: %s", *resource.ResourceType, resource.ResourceStatus, *resource.ResourceStatusReason))
 				}
 				if resource.ResourceStatus == types.ResourceStatusDeleteComplete {
 					sw.Stack.CurrentCounts.DeletedCount++
@@ -130,14 +131,12 @@ func (sw *StackWatcher) watchStack() error {
 			if sw.Stack.ready() && sw.Stack.Transitioning {
 				sw.Stack.Transitioning = false
 				sw.emit()
-				sw.Stack.PrevCounts = sw.Stack.CurrentCounts
 				continue
 			} else if sw.Stack.ready() {
 				continue
 			}
 
 			sw.emit()
-			sw.Stack.PrevCounts = sw.Stack.CurrentCounts
 			time.Sleep(30 * time.Second)
 		}
 	}
@@ -155,6 +154,7 @@ func (sw *StackWatcher) emit() {
 	if sw.Stack.countsEqual() {
 		return
 	}
+	sw.Stack.PrevCounts = sw.Stack.CurrentCounts
 
 	e := &apiv1.Event{
 		TypeMeta: metav1.TypeMeta{
@@ -198,15 +198,20 @@ func getEventPhrase(t bool) string {
 
 func (s *Stack) message() string {
 	action := "Provisioning"
-	suffix := ""
+	label := "ready"
+	failedMessageBuilder := strings.Builder{}
 	if s.CurrentCounts.FailedResources > 0 {
-		suffix = fmt.Sprintf(" (%d failed, stack: %s)", s.CurrentCounts.FailedResources, s.Name)
+		failedMessageBuilder.WriteString(fmt.Sprintf(" (%d failed, stack: %s)", s.CurrentCounts.FailedResources, s.Name))
+		for _, msg := range s.FailedMessages {
+			failedMessageBuilder.WriteString(fmt.Sprintf("\n%s", msg))
+		}
 	}
 
 	value := s.CurrentCounts.ReadyCount
 	if os.Getenv(acornEventKey) == "delete" {
 		action = "Deleting"
+		label = "deleted"
 		value = s.CurrentCounts.DeletedCount
 	}
-	return fmt.Sprintf("CloudFormation: %s resources (%d/%d ready)%s\n", action, value, s.CurrentCounts.TotalCount, suffix)
+	return fmt.Sprintf("CloudFormation: %s resources (%d/%d %s)%s\n", action, value, s.CurrentCounts.TotalCount, label, failedMessageBuilder.String())
 }
