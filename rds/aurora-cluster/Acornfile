@@ -49,15 +49,16 @@ jobs: apply: {
 	}
 	memory: 1024Mi
 	env: {
-		CDK_DEFAULT_ACCOUNT: "@{services.cdk-context.data.accountID}"
-		CDK_DEFAULT_REGION:  "@{services.cdk-context.data.region}"
-		VPC_ID:              "@{services.cdk-context.data.vpcID}"
-		ACORN_ACCOUNT:       "@{acorn.account}"
-		ACORN_NAME:          "@{acorn.name}"
-		ACORN_PROJECT:       "@{acorn.project}"
-		DB_NAME:             args.dbName
-		DB_USERNAME:         args.username
-		ACORN_EXTERNAL_ID:   "@{acorn.externalID}"
+		CDK_DEFAULT_ACCOUNT:          "@{services.cdk-context.data.accountID}"
+		CDK_DEFAULT_REGION:           "@{services.cdk-context.data.region}"
+		VPC_ID:                       "@{services.cdk-context.data.vpcID}"
+		ACORN_ACCOUNT:                "@{acorn.account}"
+		ACORN_NAME:                   "@{acorn.name}"
+		ACORN_PROJECT:                "@{acorn.project}"
+		DB_NAME:                      args.dbName
+		DB_USERNAME:                  args.username
+		ACORN_EXTERNAL_ID:            "@{acorn.externalID}"
+		CDK_RUNNER_DELETE_PROTECTION: "\(args.deletionProtection)"
 	}
 	permissions: rules: [{
 		apiGroup: "aws.acorn.io"
