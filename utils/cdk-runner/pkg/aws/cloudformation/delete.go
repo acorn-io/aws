@@ -46,7 +46,7 @@ func Delete(c *Client, stackName string) error {
 		return err
 	}
 
-	stack, err := GetStack(c, stackName)
+	err = stack.Refresh(c)
 	if err != nil && stack.Exists {
 		return err
 	} else if !stack.Exists {
