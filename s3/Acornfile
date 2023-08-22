@@ -7,9 +7,45 @@ args: {
 	tags: {}
 }
 
-services: {
-	"s3-bucket": generated: job: "apply"
-	"cdk-context": build: "../utils/cdk"
+services: "readwrite": {
+	name: "S3 Bucket Read and Write"
+	default: true
+	generated: job: "apply"
+	consumer: permissions: rules: [{
+		apiGroups: ["aws.acorn.io"]
+		verbs: ["s3:Get*", "s3:List*", "s3:Put*", "s3:AbortMultipartUpload", "s3:Delete*"]
+		resources: ["*"]
+	}]
+}
+
+services: "readonly": {
+	name: "S3 Bucket Read Only"
+	generated: job: "apply"
+	consumer: permissions: rules: [{
+		apiGroups: ["aws.acorn.io"]
+		verbs: ["s3:Get*", "s3:List*"]
+		resources: ["*"]
+	}]
+}
+
+services: "writeonly": {
+	name: "S3 Bucket Write Only"
+	generated: job: "apply"
+	consumer: permissions: rules: [{
+		apiGroups: ["aws.acorn.io"]
+		verbs: ["s3:Put*", "s3:AbortMultipartUpload"]
+		resources: ["*"]
+	}]
+}
+
+services: "admin": {
+	name: "S3 Bucket Admin"
+	generated: job: "apply"
+	consumer: permissions: rules: [{
+		apiGroups: ["aws.acorn.io"]
+		verbs: ["s3:*"]
+		resources: ["*"]
+	}]
 }
 
 jobs: apply: {
@@ -22,13 +58,12 @@ jobs: apply: {
 		}
 	}
 	files: {
-		"/app/cdk.context.json": "@{services.cdk-context.data.cdkContext}"
 		"/app/config.json":      std.toJSON(args)
 	}
 	env: {
-		CDK_DEFAULT_ACCOUNT: "@{services.cdk-context.data.accountID}"
-		CDK_DEFAULT_REGION:  "@{services.cdk-context.data.region}"
-		VPC_ID:              "@{services.cdk-context.data.vpcID}"
+		CDK_DEFAULT_ACCOUNT: "@{secrets.aws-context.account-id}"
+		CDK_DEFAULT_REGION:  "@{secrets.aws-context.aws-region}"
+		VPC_ID:              "@{secrets.aws-context.vpc-id}"
 		ACORN_ACCOUNT:       "@{acorn.account}"
 		ACORN_NAME:          "@{acorn.name}"
 		ACORN_PROJECT:       "@{acorn.project}"
@@ -60,6 +95,15 @@ jobs: apply: {
 		]
 		resources: ["*"]
 	}, {
+			apiGroup: "aws.acorn.io"
+			verbs: [
+				"ec2:DescribeAvailabilityZones",
+				"ec2:DescribeVpcs",
+				"ec2:DescribeSubnets",
+				"ec2:DescribeRouteTables",
+			]
+			resources: ["*"]
+		}, {
 		apiGroup: "api.acorn.io"
 		verbs: [
 			"create",
@@ -67,3 +111,34 @@ jobs: apply: {
 		resources: ["events"]
 	}]
 }
+
+secrets: "aws-context": {
+	name: "AWS Context",
+	external: "context://aws"
+	type: "opaque"
+	data: {
+		"account-id": ""
+		"vpc-id": ""
+		"aws-region": ""
+	}
+}
+
+localData: info: """
+		 ## Connection Information
+
+		 ### Admin
+		 Provides complete access to this S3 bucket.
+		 ** URL **: @{service.admin.data.url}
+
+		 ### Read and Write
+		 Read, write, and delete data in this S3 bucket.
+		 ** URL **: @{service.readwrite.data.url}
+
+		 ### Read Only
+		 Read only access to this S3 bucket.
+		 ** URL **: @{service.readonly.data.url}
+
+		 ### Write Only
+		 Write only access to this S3 bucket.
+		 ** URL **: @{service.writeonly.data.url}
+		 """

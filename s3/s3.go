@@ -31,13 +31,17 @@ func NewMyStack(scope constructs.Construct, id string, props *MyStackProps) awsc
 		RemovalPolicy: awscdk.RemovalPolicy_DESTROY,
 	})
 
-	// Output the bucket URL and ARN
+	// Output the bucket URL, ARN, and name
 	awscdk.NewCfnOutput(stack, jsii.String("BucketURL"), &awscdk.CfnOutputProps{
 		Value: bucket.BucketWebsiteUrl(),
 	})
 
 	awscdk.NewCfnOutput(stack, jsii.String("BucketARN"), &awscdk.CfnOutputProps{
 		Value: bucket.BucketArn(),
+	})
+
+	awscdk.NewCfnOutput(stack, jsii.String("BucketName"), &awscdk.CfnOutputProps{
+		Value: bucket.BucketName(),
 	})
 
 	return stack
