@@ -8,7 +8,6 @@ import (
 	"github.com/acorn-io/aws/utils/cdk-runner/pkg/aws/utils"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/ec2"
-	"github.com/sirupsen/logrus"
 )
 
 type CdkContext struct {
@@ -52,7 +51,7 @@ func (ctx *CdkContext) AddPlugin(p PluginProvider) {
 func (ctx *CdkContext) ClientReady() error {
 	timeOutCtx, cancel := context.WithTimeout(ctx.Context, time.Second*30)
 	defer cancel()
-	logrus.Infof("Checking EC2 client is ready..")
+
 	for {
 		select {
 		case <-timeOutCtx.Done():
