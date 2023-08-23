@@ -20,6 +20,7 @@ func GenerateTemplateFile(outputFile string) error {
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if err != nil {
+		os.WriteFile("/dev/termination-log", []byte(fmt.Sprintf("error running cdk synth: %v, %v", err, stderr.String())), 0644)
 		return fmt.Errorf("error running cdk synth: %v, %v", err, stderr.String())
 	}
 
