@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	"github.com/acorn-io/services/aws/libs/common"
 	"github.com/aws/aws-cdk-go/awscdk/v2"
@@ -102,6 +103,11 @@ func NewStackProps() (*MyStackProps, error) {
 		stackProps.VisibilityTimeout = 30
 	}
 
+	if stackProps.Fifo && !strings.Contains(stackProps.QueueName, ".fifo") {
+		logrus.Infof("Adding required .fifo suffix to queue name: %s", stackProps.QueueName)
+		stackProps.QueueName = stackProps.QueueName + ".fifo"
+	}
+
 	stackProps.ExternalID = os.Getenv("ACORN_EXTERNAL_ID")
 
 	return stackProps, nil
@@ -130,7 +136,9 @@ func NewSQSStack(scope constructs.Construct, id string, props *MyStackProps) aws
 	}
 
 	if props.MaxReceiveCount != 0 {
-		dlq := awssqs.NewQueue(stack, jsii.String("sqsQueueDlq"), &awssqs.QueueProps{})
+		dlq := awssqs.NewQueue(stack, jsii.String("sqsQueueDlq"), &awssqs.QueueProps{
+			Fifo: jsii.Bool(props.Fifo),
+		})
 		queueProps.DeadLetterQueue = &awssqs.DeadLetterQueue{
 			MaxReceiveCount: jsii.Number(props.MaxReceiveCount),
 			Queue:           dlq,
