@@ -12,7 +12,7 @@ WORKDIR /app
 COPY ./scripts ./scripts
 ENTRYPOINT ["/app/scripts/create_and_grant_users.sh"]
 
-FROM ghcr.io/acorn-io/aws/utils/cdk-runner:v0.4.0 as cdk-runner
+FROM ghcr.io/acorn-io/aws/utils/cdk-runner:v0.5.0 as cdk-runner
 FROM cgr.dev/chainguard/wolfi-base
 RUN apk add -U --no-cache nodejs bash busybox aws-cli jq curl zip && \
     apk del --no-cache wolfi-base apk-tools
