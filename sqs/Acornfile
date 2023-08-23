@@ -14,7 +14,7 @@ args: {
 	contentBasedDeduplication: false
 	// Amount of time in seconds SQS reuses data key before calling KMS again
 	dataKeyReuse: 300
-	// Number of times a message can be unsuccessfully dequeued before being sent to the dead letter queue. A number >0 will create a new queue
+	// Number of times a message can be unsuccessfully dequeued before being sent to the dead letter queue. A number >0 will create a new deadletter queue
 	maxReceiveCount: 0
 	// KMS Key arn to use for encryption. Default is to use Amazon SQS key
 	encryptionMasterKey: ""
