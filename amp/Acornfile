@@ -7,7 +7,7 @@ args: {
 	tags: {}
 }
 
-services: "amp-admin": {
+services: admin: {
 	name:    "AMP Workspace Admin Access"
 	default: true
 	generated: job: "apply"
@@ -17,7 +17,7 @@ services: "amp-admin": {
 		resources: ["*"]
 	}]
 }
-services: "amp-ro": {
+services: readonly: {
 	name: "AMP Workspace Read Only Access"
 	generated: job: "apply"
 	consumer: permissions: rules: [{
@@ -31,7 +31,7 @@ services: "amp-ro": {
 		resources: ["*"]
 	}]
 }
-services: "amp-remote-write": {
+services: "remote-write": {
 	name: "AMP Workspace Remote Write Access"
 	generated: job: "apply"
 	consumer: permissions: rules: [{
