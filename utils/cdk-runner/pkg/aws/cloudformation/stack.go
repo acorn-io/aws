@@ -36,7 +36,7 @@ func GetStack(c *Client, stackName string) (*CfnStack, error) {
 		return cStack, err
 	}
 
-	if len(s.Stacks) > 0 {
+	if s != nil && len(s.Stacks) > 0 {
 		cStack.Exists = s.Stacks[0].StackStatus != types.StackStatusReviewInProgress
 		cStack.Current = s.Stacks[0]
 		cStack.DeletionProtection = deletionProtectionEnabled(s.Stacks[0])

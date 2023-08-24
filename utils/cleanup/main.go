@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	acornCf "github.com/acorn-io/aws/utils/cdk-runner/pkg/aws/cloudformation"
@@ -18,34 +19,48 @@ import (
 func main() {
 	stackName := os.Getenv("ACORN_EXTERNAL_ID")
 	event := os.Getenv("ACORN_EVENT")
+
+	if event != "delete" {
+		logrus.Error("unexpected event")
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
 	defer cancel()
 
+	// try to build the necessary clients
 	cfClient, s3Client, err := buildClients(ctx)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 
+	// get the stack
 	stack, err := acornCf.GetStack(&acornCf.Client{Ctx: ctx, Client: cfClient}, stackName)
 	if err != nil {
-		logrus.Fatal(err)
-	}
-
-	if event == "delete" {
-		if stack.DeletionProtection && os.Getenv(acornCf.DeletionProtectionEnvKey) == "true" {
-			logrus.Warnf("Stack %s has deletion protection enabled. Bucket will not be emptied.", stackName)
+		if strings.Contains(err.Error(), "does not exist") {
+			// no cleanup is necessary
 			return
 		}
 
-		resources, err := cfClient.DescribeStackResources(ctx, &cloudformation.DescribeStackResourcesInput{StackName: aws.String(stackName)})
-		if err != nil {
-			logrus.WithError(err).Fatal("failed to describe stack resources")
-		}
+		logrus.Fatal(err)
+	}
 
-		err = emptyBuckets(ctx, s3Client, resources.StackResources)
-		if err != nil {
-			logrus.WithError(err).Fatal("failed to empty buckets")
-		}
+	// check for deletion protection
+	if stack.DeletionProtection && os.Getenv(acornCf.DeletionProtectionEnvKey) == "true" {
+		logrus.Warnf("Stack %s has deletion protection enabled. Buckets will not be emptied.", stackName)
+		return
+	}
+
+	// get the stack resource so we can search for buckets
+	resources, err := cfClient.DescribeStackResources(ctx, &cloudformation.DescribeStackResourcesInput{StackName: aws.String(stackName)})
+	if err != nil {
+		logrus.WithError(err).Fatal("failed to describe stack resources")
+	}
+
+	// try to empty the buckets
+	err = emptyBuckets(ctx, s3Client, resources.StackResources)
+	if err != nil {
+		logrus.WithError(err).Fatal("failed to empty buckets")
 	}
 }
 
