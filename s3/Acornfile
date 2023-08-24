@@ -5,7 +5,7 @@ args: {
 	versioned: true
 	// Key value pairs to apply to all resources
 	tags: {}
-	// Deletion protection, you must set to false in order for the S3 bucket to be deleted. Default value is true.
+	// Deletion protection, you must set to false in order for the S3 bucket to be deleted. Default value is false.
 	deletionProtection: false
 }
 
