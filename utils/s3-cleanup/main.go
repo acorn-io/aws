@@ -8,6 +8,7 @@ import (
 	"time"
 
 	acornCf "github.com/acorn-io/aws/utils/cdk-runner/pkg/aws/cloudformation"
+	"github.com/acorn-io/aws/utils/cdk-runner/pkg/aws/utils"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
@@ -34,6 +35,11 @@ func main() {
 		logrus.Fatal(err)
 	}
 
+	err = utils.WaitForClientRole(ctx)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
 	// get the stack
 	stack, err := acornCf.GetStack(&acornCf.Client{Ctx: ctx, Client: cfClient}, stackName)
 	if err != nil {
@@ -47,7 +53,7 @@ func main() {
 
 	// check for deletion protection
 	if stack.DeletionProtection && os.Getenv(acornCf.DeletionProtectionEnvKey) == "true" {
-		logrus.Warnf("Stack %s has deletion protection enabled. Buckets will not be emptied.", stackName)
+		logrus.Warnf("Stack %s has deletion protection enabled. Bucket will not be emptied.", stackName)
 		return
 	}
 

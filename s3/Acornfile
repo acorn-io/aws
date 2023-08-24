@@ -153,21 +153,21 @@ secrets: "aws-context": {
 }
 
 localData: info: """
-		 ## Connection Information
+## Connection Information
 
-		 ### Admin
-		 Provides complete access to this S3 bucket.
-		 ** URL **: @{service.admin.data.url}
+### Admin
+Provides complete access to this S3 bucket.
+** URL **: @{service.admin.data.url}
 
-		 ### Read and Write
-		 Read, write, and delete data in this S3 bucket.
-		 ** URL **: @{service.readwrite.data.url}
+### Read and Write
+Read, write, and delete data in this S3 bucket.
+** URL **: @{service.readwrite.data.url}
 
-		 ### Read Only
-		 Read only access to this S3 bucket.
-		 ** URL **: @{service.readonly.data.url}
+### Read Only
+Read only access to this S3 bucket.
+** URL **: @{service.readonly.data.url}
 
-		 ### Write Only
-		 Write only access to this S3 bucket.
-		 ** URL **: @{service.writeonly.data.url}
-		 """
+### Write Only
+Write only access to this S3 bucket.
+** URL **: @{service.writeonly.data.url}
+"""
