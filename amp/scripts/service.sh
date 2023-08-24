@@ -15,7 +15,7 @@ uri="${no_proto#*$address}"
 
 cat > /run/secrets/output<<EOF
 services: {
-    "amp-admin": {
+    "admin": {
         default: true
         address: "${address}"
         consumer: permissions: rules: [{
@@ -30,7 +30,7 @@ services: {
             uri: "${uri}"
         }
     }
-    "amp-ro": {
+    "readonly": {
         address: "${address}"
         consumer: permissions: rules: [{
            apiGroups: ["aws.acorn.io"]
@@ -49,7 +49,7 @@ services: {
             uri: "${uri}"
         }
     }
-    "amp-remote-write": {
+    "remote-write": {
         address: "${address}"
         consumer: permissions: rules: [{
            apiGroups: ["aws.acorn.io"]
