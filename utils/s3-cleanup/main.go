@@ -38,7 +38,7 @@ func main() {
 	stack, err := acornCf.GetStack(&acornCf.Client{Ctx: ctx, Client: cfClient}, stackName)
 	if err != nil {
 		if strings.Contains(err.Error(), "does not exist") {
-			// no cleanup is necessary
+			// no s3-cleanup is necessary
 			return
 		}
 

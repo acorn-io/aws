@@ -53,8 +53,8 @@ services: "admin": {
 jobs: {
 	cleanup: {
 		build: {
-			context: "../utils/cleanup/"
-			dockerfile: "../utils/cleanup/Dockerfile"
+			context: "../utils/s3-cleanup/"
+			dockerfile: "../utils/s3-cleanup/Dockerfile"
 		}
 		env: {
 				ACORN_EXTERNAL_ID:   "@{acorn.externalID}"
@@ -75,6 +75,7 @@ jobs: {
 	}
 
 	apply: {
+			dependsOn: ["cleanup"]
 			build: {
 				context:    "."
 				dockerfile: "Dockerfile"

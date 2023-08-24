@@ -1,4 +1,4 @@
-module github.com/github.com/acorn-io/aws/utils/cleanup
+module github.com/github.com/acorn-io/aws/utils/s3-cleanup
 
 go 1.21
 
