@@ -1,0 +1,118 @@
+name:        "AWS IAM Role"
+description: "AWS Identity and Access Management (IAM) Role"
+info:        "Role ARN: @{service.role.data.arn}"
+
+args: {
+	// Name of the Role to create. The default is auto-generated.
+	roleName: ""
+	// The ARN of the principal that will be allowed to assume the role. Required.
+	trustedArn: ""
+	// Extra tags to place on the created Role.
+	tags: {}
+	// The IAM policy that will be attached to the Role as an inline policy. Must be in JSON format. Required.
+	policy: {}
+	// The maximum session duration (in minutes) allowed. Default and minimum is 60.
+	maxSessionDurationMinutes: 60
+	// The path under which the Role will be created. Default is "/".
+	path: "/"
+	// External IDs to use when assuming the role, as a comma-separated list (i.e. "one,two,three"). Default is none.
+	externalIds: ""
+}
+
+services: role: {
+	name: "AWS IAM Role"
+	generated: job: "apply"
+}
+
+jobs: apply: {
+	build: {
+		context: "."
+		additionalContexts: {
+			common: "../libs"
+			utils:  "../utils"
+		}
+	}
+	files: {
+		"/app/config.json": std.toJSON(args)
+		"/app/policy.json": std.toJSON(args.policy)
+	}
+	env: {
+		CDK_DEFAULT_ACCOUNT: "@{secrets.aws-context.account-id}"
+		CDK_DEFAULT_REGION:  "@{secrets.aws-context.aws-region}"
+		VPC_ID:              "@{secrets.aws-context.vpc-id}"
+		ACORN_ACCOUNT:       "@{acorn.account}"
+		ACORN_NAME:          "@{acorn.name}"
+		ACORN_PROJECT:       "@{acorn.project}"
+		ACORN_EXTERNAL_ID:   "@{acorn.externalID}"
+	}
+	events: ["create", "update", "delete"]
+	permissions: rules: [{
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"cloudformation:DescribeStacks",
+			"cloudformation:CreateChangeSet",
+			"cloudformation:DescribeChangeSet",
+			"cloudformation:DescribeStackEvents",
+			"cloudformation:DescribeStackResources",
+			"cloudformation:ExecuteChangeSet",
+			"cloudformation:PreviewStackUpdate",
+			"cloudformation:UpdateStack",
+			"cloudformation:GetTemplateSummary",
+			"cloudformation:DeleteStack",
+			"iam:AttachRolePolicy",
+			"iam:CreatePolicy",
+			"iam:CreatePolicyVersion",
+			"iam:CreateRole",
+			"iam:DeletePolicy",
+			"iam:DeletePolicyVersion",
+			"iam:DeleteRole",
+			"iam:DeleteRolePolicy",
+			"iam:DetachRolePolicy",
+			"iam:GetPolicy",
+			"iam:GetPolicyVersion",
+			"iam:GetRole",
+			"iam:GetRolePolicy",
+			"iam:ListAttachedRolePolicies",
+			"iam:ListPolicies",
+			"iam:ListPolicyTags",
+			"iam:ListPolicyVersions",
+			"iam:ListRolePolicies",
+			"iam:ListRoleTags",
+			"iam:ListRoles",
+			"iam:PutRolePolicy",
+			"iam:TagPolicy",
+			"iam:TagRole",
+			"iam:UntagPolicy",
+			"iam:UntagRole",
+			"iam:UpdateAssumeRolePolicy",
+			"iam:UpdateRole",
+		]
+		resources: ["*"]
+	}, {
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"ec2:DescribeAvailabilityZones",
+			"ec2:DescribeVpcs",
+			"ec2:DescribeSubnets",
+			"ec2:DescribeRouteTables",
+		]
+		resources: ["*"]
+	}, {
+		apiGroup: "api.acorn.io"
+		verbs: [
+			"create",
+		]
+		resources: ["events"]
+	}]
+}
+
+secrets: "aws-context": {
+	name:     "AWS Context"
+	external: "context://aws"
+	type:     "opaque"
+	data: {
+		"account-id": ""
+		"vpc-id":     ""
+		"aws-region": ""
+	}
+}
