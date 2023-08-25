@@ -28,8 +28,8 @@ jobs: apply: {
 	build: {
 		context: "."
 		additionalContexts: {
-			common: "../libs"
-			utils:  "../utils"
+			common: "../../libs"
+			utils:  "../../utils"
 		}
 	}
 	files: {

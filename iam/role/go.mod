@@ -1,4 +1,4 @@
-module github.com/acorn-io/services/aws/iam-role
+module github.com/acorn-io/services/aws/iam/role
 
 go 1.21.0
 
@@ -11,7 +11,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 )
 
-replace github.com/acorn-io/services/aws/libs/common v0.0.0 => ../libs/common
+replace github.com/acorn-io/services/aws/libs/common v0.0.0 => ../../libs/common
 
 require (
 	github.com/Masterminds/semver/v3 v3.2.1 // indirect

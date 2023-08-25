@@ -12,7 +12,7 @@ The ARN can refer to an AWS account, an IAM user, an IAM role, or specific assum
 ### Running the Acorn
 
 ```
-acorn run ghcr.io/acorn-io/aws/iam-role:v0.1.0 \
+acorn run ghcr.io/acorn-io/aws/iam/role:v0.1.0 \
   --role-name="my-role" \
   --policy @policy.json \
   --trusted-arn="<arn>" \
@@ -24,7 +24,7 @@ acorn run ghcr.io/acorn-io/aws/iam-role:v0.1.0 \
 
 ```cue
 services: role: {
-    image: "ghcr.io/acorn-io/aws/iam-role:v0.1.0"
+    image: "ghcr.io/acorn-io/aws/iam/role:v0.1.0"
     serviceArgs: {
         roleName:   "my-role"
         trustedArn: "<arn>"
