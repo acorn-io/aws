@@ -1,6 +1,6 @@
 name:        "AWS IAM Role"
 description: "AWS Identity and Access Management (IAM) Role"
-info:        "Role ARN: @{service.role.data.arn}"
+info:        localData.info
 
 args: {
 	// Name of the Role to create. The default is auto-generated.
@@ -116,3 +116,5 @@ secrets: "aws-context": {
 		"aws-region": ""
 	}
 }
+
+localData: info: "Role ARN: @{service.role.data.arn}"
