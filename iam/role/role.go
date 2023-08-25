@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -18,12 +17,13 @@ import (
 
 type IAMRoleStackProps struct {
 	StackProps                awscdk.StackProps
-	Tags                      map[string]string `json:"tags"`
-	RoleName                  string            `json:"roleName"`
-	TrustedArn                string            `json:"trustedArn"`
-	MaxSessionDurationMinutes int               `json:"maxSessionDurationMinutes"`
-	Path                      string            `json:"path"`
-	ExternalIds               string            `json:"externalIds"`
+	Tags                      map[string]string      `json:"tags"`
+	RoleName                  string                 `json:"roleName"`
+	TrustedArn                string                 `json:"trustedArn"`
+	Policy                    map[string]interface{} `json:"policy"`
+	MaxSessionDurationMinutes int                    `json:"maxSessionDurationMinutes"`
+	Path                      string                 `json:"path"`
+	ExternalIds               string                 `json:"externalIds"`
 }
 
 func (rsp *IAMRoleStackProps) setDefaults() {
@@ -38,7 +38,7 @@ func (rsp *IAMRoleStackProps) setDefaults() {
 	}
 }
 
-func (rsp *IAMRoleStackProps) validateProps(policy string) error {
+func (rsp *IAMRoleStackProps) validateProps() error {
 	var errs []error
 	if rsp.MaxSessionDurationMinutes < 60 {
 		errs = append(errs, fmt.Errorf("maxSessionDurationMinutes must be at least 60"))
@@ -46,7 +46,7 @@ func (rsp *IAMRoleStackProps) validateProps(policy string) error {
 	if !strings.HasPrefix(rsp.Path, "/") {
 		errs = append(errs, fmt.Errorf("path must start with a /"))
 	}
-	if policy == "" {
+	if len(rsp.Policy) == 0 {
 		errs = append(errs, fmt.Errorf("policy cannot be empty"))
 	}
 	if _, err := arn.Parse(rsp.TrustedArn); err != nil {
@@ -55,22 +55,17 @@ func (rsp *IAMRoleStackProps) validateProps(policy string) error {
 	return errors.Join(errs...)
 }
 
-func NewIAMRoleStack(scope constructs.Construct, id string, props *IAMRoleStackProps, policy []byte) (awscdk.Stack, error) {
+func NewIAMRoleStack(scope constructs.Construct, id string, props *IAMRoleStackProps) (awscdk.Stack, error) {
 	var sprops awscdk.StackProps
 	if props != nil {
 		sprops = props.StackProps
 	}
 	stack := awscdk.NewStack(scope, &id, &sprops)
 
-	var policyMap map[string]interface{}
-	if err := json.Unmarshal(policy, &policyMap); err != nil {
-		return nil, fmt.Errorf("error unmarshaling policy document: %w", err)
-	}
-
 	roleProps := &awsiam.RoleProps{
 		AssumedBy:          awsiam.NewArnPrincipal(jsii.String(props.TrustedArn)),
 		Description:        jsii.String("Acorn created IAM Role"),
-		InlinePolicies:     &map[string]awsiam.PolicyDocument{"inline": awsiam.PolicyDocument_FromJson(policyMap)},
+		InlinePolicies:     &map[string]awsiam.PolicyDocument{"inline": awsiam.PolicyDocument_FromJson(props.Policy)},
 		MaxSessionDuration: awscdk.Duration_Minutes(jsii.Number(props.MaxSessionDurationMinutes)),
 		Path:               jsii.String(props.Path),
 		RoleName:           jsii.String(props.RoleName),
@@ -101,22 +96,17 @@ func main() {
 		StackProps: *common.NewAWSCDKStackProps(),
 	}
 
-	policy, err := os.ReadFile("/app/policy.json")
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
 	if err := common.NewConfig(stackProps); err != nil {
 		logrus.Fatal(err)
 	}
 	stackProps.setDefaults()
-	if err := stackProps.validateProps(string(policy)); err != nil {
+	if err := stackProps.validateProps(); err != nil {
 		logrus.Fatalf("invalid stack properties: %w", err)
 	}
 
 	common.AppendScopedTags(app, stackProps.Tags)
 
-	if _, err := NewIAMRoleStack(app, "iamRoleStack", stackProps, policy); err != nil {
+	if _, err := NewIAMRoleStack(app, "iamRoleStack", stackProps); err != nil {
 		logrus.Fatal(err)
 	}
 

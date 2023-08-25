@@ -34,7 +34,6 @@ jobs: apply: {
 	}
 	files: {
 		"/app/config.json": std.toJSON(args)
-		"/app/policy.json": std.toJSON(args.policy)
 	}
 	env: {
 		CDK_DEFAULT_ACCOUNT: "@{secrets.aws-context.account-id}"
