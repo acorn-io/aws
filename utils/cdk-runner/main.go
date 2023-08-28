@@ -119,6 +119,7 @@ func main() {
 
 	if event == "delete" {
 		if err := deleteStack(stackName); err != nil {
+			os.WriteFile("/dev/termination-log", []byte(err.Error()), 0644)
 			logrus.Fatal(err)
 		}
 	}

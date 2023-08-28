@@ -95,6 +95,12 @@ func StackOperationInProgress(c *Client, stackName string) (bool, string, error)
 	} else if err != nil {
 		return false, "", err
 	}
+
+	// We should be able to recover from this one.
+	if stack.Current.StackStatus == types.StackStatusReviewInProgress {
+		return false, string(stack.Current.StackStatus), nil
+	}
+
 	return strings.Contains(string(stack.Current.StackStatus), "IN_PROGRESS"), string(stack.Current.StackStatus), nil
 }
 
