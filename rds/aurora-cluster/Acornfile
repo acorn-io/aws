@@ -32,8 +32,6 @@ services: rds: {
 	generated: job: "apply"
 }
 
-services: "cdk-context": build: "../../utils/cdk"
-
 jobs: apply: {
 	build: {
 		context: ".."
@@ -43,15 +41,12 @@ jobs: apply: {
 			utils:  "../../utils"
 		}
 	}
-	files: {
-		"/app/cdk.context.json": "@{services.cdk-context.data.cdkContext}"
-		"/app/config.json":      std.toJSON(args)
-	}
+	files: "/app/config.json": std.toJSON(args)
 	memory: 1024Mi
 	env: {
-		CDK_DEFAULT_ACCOUNT:          "@{services.cdk-context.data.accountID}"
-		CDK_DEFAULT_REGION:           "@{services.cdk-context.data.region}"
-		VPC_ID:                       "@{services.cdk-context.data.vpcID}"
+		CDK_DEFAULT_ACCOUNT:          "@{secrets.aws-context.account-id}"
+		CDK_DEFAULT_REGION:           "@{secrets.aws-context.aws-region}"
+		VPC_ID:                       "@{secrets.aws-context.vpc-id}"
 		ACORN_ACCOUNT:                "@{acorn.account}"
 		ACORN_NAME:                   "@{acorn.name}"
 		ACORN_PROJECT:                "@{acorn.project}"
@@ -126,4 +121,14 @@ images: user: containerBuild: {
 secrets: admin: {
 	type: "generated"
 	params: job: "apply"
+}
+
+secrets: "aws-context": {
+	external: "context://aws"
+	type:     "opaque"
+	data: {
+		"account-id": ""
+		"vpc-id":     ""
+		"aws-region": ""
+	}
 }
