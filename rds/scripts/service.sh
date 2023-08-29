@@ -6,12 +6,7 @@ ADDRESS="$(       jq -r '.[] | select(.OutputKey=="host")            |.OutputVal
 ADMIN_USERNAME="$(jq -r '.[] | select(.OutputKey=="adminusername")   |.OutputValue' outputs.json )"
 PASSWORD_ARN="$(  jq -r '.[] | select(.OutputKey=="adminpasswordarn")|.OutputValue' outputs.json )"
 
-# Turn off echo
-set +x
 ADMIN_PASSWORD="$(aws --output json secretsmanager get-secret-value --secret-id "${PASSWORD_ARN}" --query 'SecretString' | jq -r .|jq -r .password)"
-if [ "${ACORN_EVENT}" != "delete" ]; then
-  event_success
-fi
 
 cat > /run/secrets/output <<EOF
 services: rds: {
