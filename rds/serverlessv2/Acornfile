@@ -8,8 +8,6 @@ args: {
 	dbName: "instance"
 	// Deletion protection, you must set to false in order for the RDS db to be deleted. Default is false
 	deletionProtection: false
-	// Size of the instance. Default is small. (Deprecated no longer has an effect)
-	instanceSize: "small"
 	// Aurora Capacity Units minimum value must be 1, 2, 4, 8, 16, 32, 64, 128, 256, 384. Default is .5.
 	auroraCapacityUnitsV2Min: 0.5
 	// Aurora Capacity Units maximum value must be 1, 2, 4, 8, 16, 32, 64, 128, 256, 384. Default is 8.
