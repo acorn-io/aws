@@ -8,10 +8,10 @@ args: {
 	dbName: "instance"
 	// Deletion protection, you must set to false in order for the RDS db to be deleted. Default is false
 	deletionProtection: false
-	// Aurora Capacity Units minimum value must be 1, 2, 4, 8, 16, 32, 64, 128, 256, 384. Default is .5.
-	auroraCapacityUnitsV2Min: 0.5
-	// Aurora Capacity Units maximum value must be 1, 2, 4, 8, 16, 32, 64, 128, 256, 384. Default is 8.
-	auroraCapacityUnitsV2Max: 8
+	// Aurora Capacity Units minimum value(in 0.5 increments). Default is 0.5
+	auroraCapacityUnitsV2Min: *0.5 | float | int
+	// Aurora Capacity Units maximum value must be larger than minimum value, and 1<=n<=128 (in 0.5 increments). Default is 8.0
+	auroraCapacityUnitsV2Max: *8.0 | float | int
 	// RDS MySQL Database Parameters to apply to the cluster. Must be k/v string pairs(ex. max_connections: "1000").
 	parameters: {}
 	// Do not take a final snapshot on delete or update and replace operations. Default is false. If skip is enabled the DB will be gone forever if deleted or replaced.
