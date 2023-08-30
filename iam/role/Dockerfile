@@ -8,7 +8,7 @@ RUN --mount=type=cache,target=/root/go/pkg \
     --mount=type=cache,target=/root/.cache/go-build \
     go build -o role .
 
-FROM ghcr.io/acorn-io/aws/utils/cdk-runner:v0.5.1 as cdk-runner
+FROM ghcr.io/acorn-io/aws/utils/cdk-runner:v0.6.0 as cdk-runner
 FROM cgr.dev/chainguard/wolfi-base
 RUN apk add -U --no-cache nodejs bash busybox jq && \
     apk del --no-cache wolfi-base apk-tools
