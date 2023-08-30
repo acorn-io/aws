@@ -13,7 +13,11 @@ services: rds: {
   default: true
   address: "${ADDRESS}"
   ports: [${PORT}]
-  data: dbName: "${DB_NAME}"
+  data: {
+    address: "${ADDRESS}"
+    port: "${PORT}"
+    dbName: "${DB_NAME}"
+  }
 }
 
 secrets: "admin": {

@@ -1,11 +1,16 @@
+name: "AWS Aurora PostgreSQL Cluster"
+description: "A managed PostgreSQL cluster running in AWS."
+icon: "../../../icon.png"
+info: localData.info
+
 args: {
-	// Name of the root/admin user. Default is admin.
-	adminUsername: "admin"
+	// Name of the root/admin user. Default is postgres.
+	adminUsername: "postgres"
 	// Name of an additional user to create. This user will have complete access to the database.
 	// If left blank, no additional user will be created.
-	username: ""
-	// Name of the database instance. Default is instance.
-	dbName: "instance"
+	username: "kyle"
+	// Name of the database instance. Default is postgres.
+	dbName: "postgres"
 	// Deletion protection, you must set to false in order for the RDS db to be deleted. Default is false.
 	deletionProtection: false
 	// The instance class for the database server to use. Default is "burstable".
@@ -17,7 +22,7 @@ args: {
 	// The instance size to use.(medium, large, xlarge, or 2xlarge) Default is "medium". Not all instance sizes are available in all regions.
 	// **Updating this setting will cause downtime on the RDS instance.**
 	instanceSize: "medium"
-	// RDS MySQL Database Parameters to apply to the cluster. Must be k/v string pairs(ex. max_connections: "1000").
+	// RDS PostgreSQL Database Parameters to apply to the cluster. Must be k/v string pairs(ex. max_connections: "1000").
 	parameters: {}
 	// Do not take a final snapshot on delete or update and replace operations. Default is false. If skip is enabled the DB will be gone forever if deleted or replaced.
 	skipSnapshotOnDelete: false
@@ -34,11 +39,12 @@ services: rds: {
 
 jobs: apply: {
 	build: {
-		context: ".."
-		buildArgs: MAIN: "aurora-cluster"
+		context: "../../../"
+		dockerfile: "../../../postgres.Dockerfile"
+		buildArgs: MAIN: "cluster"
 		additionalContexts: {
-			common: "../../libs"
-			utils:  "../../utils"
+			common: "../../../../libs"
+			utils:  "../../../../utils"
 		}
 	}
 	files: "/app/config.json": std.toJSON(args)
@@ -98,23 +104,26 @@ if args.username != "" {
 		build: images.user.containerBuild
 		dependsOn: ["apply"]
 		env: {
-			MYSQL_ADMIN_USER:     args.adminUsername
-			MYSQL_ADMIN_PASSWORD: "@{secrets.admin.password}"
-			MYSQL_USER:           args.username
-			MYSQL_PASSWORD:       "@{secrets.user.password}"
-			MYSQL_HOST:           "@{service.rds.address}"
-			MYSQL_DATABASE:       args.dbName
+			PGUSER:            args.adminUsername
+			PGPASSWORD:        "@{secrets.admin.password}"
+			NEW_PGUSER: 			 args.username
+			NEW_PGPASSWORD:    "@{secrets.user.password}"
+			PGHOST:            "@{service.rds.address}"
+			PGDATABASE:        args.dbName
+			PGCONNECT_TIMEOUT: "2"
 		}
 	}
 
 	secrets: user: {
+		name: "User Credential"
 		type: "basic"
 		data: username: args.username
 	}
 }
 
 images: user: containerBuild: {
-	context: ".."
+	context: "../../../"
+	dockerfile: "../../../postgres.Dockerfile"
 	target:  "user"
 }
 
@@ -125,10 +134,29 @@ secrets: admin: {
 
 secrets: "aws-context": {
 	external: "context://aws"
-	type:     "opaque"
+	type: "opaque"
 	data: {
 		"account-id": ""
-		"vpc-id":     ""
+		"vpc-id": ""
 		"aws-region": ""
 	}
 }
+
+localData: info: """
+## Usage Information
+
+[Consume the database](https://docs.acorn.io/authoring/services#consuming-services) from another app.
+You can use the standard PostgreSQL environment variables that allow libpq based tools to connect automatically.
+
+```typescript
+containers: app: {
+  env: {
+	  PGDATABASE: "@{@{service.}@{acorn.name}.data.dbName}"
+	  PGHOST: "@{@{service.}@{acorn.name}.data.address}"
+	  PGPORT: "@{@{service.}@{acorn.name}.data.port}"
+	  PGUSER: "@{@{service.}@{acorn.name}.secrets.admin.username}"
+	  PGPASSWORD: "@{@{service.}@{acorn.name}.secrets.admin.password}"
+	}
+}
+```
+"""

@@ -82,7 +82,7 @@ func GetRemovalPolicy(props *RDSStackProps) awscdk.RemovalPolicy {
 	return awscdk.RemovalPolicy_SNAPSHOT
 }
 
-func GetAllowAllVPCSecurityGroup(scope constructs.Construct, name *string, vpc awsec2.IVpc) awsec2.SecurityGroup {
+func GetAllowAllVPCSecurityGroup(scope constructs.Construct, name *string, vpc awsec2.IVpc, port int) awsec2.SecurityGroup {
 	sg := awsec2.NewSecurityGroup(scope, name, &awsec2.SecurityGroupProps{
 		Vpc:              vpc,
 		AllowAllOutbound: jsii.Bool(true),
@@ -90,10 +90,10 @@ func GetAllowAllVPCSecurityGroup(scope constructs.Construct, name *string, vpc a
 	})
 
 	for _, i := range *vpc.PrivateSubnets() {
-		sg.AddIngressRule(awsec2.Peer_Ipv4(i.Ipv4CidrBlock()), awsec2.Port_Tcp(jsii.Number(3306)), jsii.String("Allow from private subnets"), jsii.Bool(false))
+		sg.AddIngressRule(awsec2.Peer_Ipv4(i.Ipv4CidrBlock()), awsec2.Port_Tcp(jsii.Number(port)), jsii.String("Allow from private subnets"), jsii.Bool(false))
 	}
 	for _, i := range *vpc.PublicSubnets() {
-		sg.AddIngressRule(awsec2.Peer_Ipv4(i.Ipv4CidrBlock()), awsec2.Port_Tcp(jsii.Number(3306)), jsii.String("Allow from public subnets"), jsii.Bool(false))
+		sg.AddIngressRule(awsec2.Peer_Ipv4(i.Ipv4CidrBlock()), awsec2.Port_Tcp(jsii.Number(port)), jsii.String("Allow from public subnets"), jsii.Bool(false))
 	}
 	return sg
 }
