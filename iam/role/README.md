@@ -63,15 +63,16 @@ containers: mycontainer: {
 
 ### Arguments
 
-| Name                             | Description                                                                            | Required | Default     |
-|----------------------------------|----------------------------------------------------------------------------------------|----------|-------------|
-| `--role-name`                    | The name of the IAM role to create.                                                    | No       | (generated) |
-| `--policy`                       | The IAM policy to attach to the role as an inline policy. This must be in JSON format. | Yes      |             |
-| `--trusted-arn`                  | The ARN of the entity that can assume the role.                                        | Yes      |             |
-| `--external-ids`                 | A comma-separated list of external IDs to use in the trust relationship.               | No       | (none)      |
-| `--max-session-duration-minutes` | The maximum session duration in minutes for the role.                                  | No       | 60          |
-| `--path`                         | The path in which to create the Role.                                                  | No       | "/"         |
-| `--tags`                         | Tags to attach to the Role.                                                            | No       | (none)      |
+| Name                             | Description                                                                            | Required | Default                  |
+|----------------------------------|----------------------------------------------------------------------------------------|----------|--------------------------|
+| `--role-name`                    | The name of the IAM role to create.                                                    | No       | (generated)              |
+| `--policy`                       | The IAM policy to attach to the role as an inline policy. This must be in JSON format. | Yes      |                          |
+| `--trusted-arn`                  | The ARN of the entity that can assume the role.                                        | Yes      |                          |
+| `--external-ids`                 | A comma-separated list of external IDs to use in the trust relationship.               | No       | (none)                   |
+| `--max-session-duration-minutes` | The maximum session duration in minutes for the role.                                  | No       | 60                       |
+| `--path`                         | The path in which to create the Role.                                                  | No       | "/"                      |
+| `--tags`                         | Tags to attach to the Role.                                                            | No       | (none)                   |
+| `--description`                  | Description to attach to the Role.                                                     | No       | "Acorn created IAM Role" |
 
 ### Outputs
 
