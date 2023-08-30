@@ -1,6 +1,6 @@
 # IAM Role Service Acorn
 
-This Service Acorn creates a CloudFormation stack containing a single IAM Role.
+This Service Acorn creates a CloudFormation stack containing the given IAM Role and inline Policy.
 
 ## Limitations
 

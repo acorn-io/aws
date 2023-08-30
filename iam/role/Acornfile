@@ -116,4 +116,4 @@ secrets: "aws-context": {
 	}
 }
 
-localData: info: "Role ARN: @{service.role.data.arn}"
+localData: info: "Role ARN: @{services.role.data.arn}"

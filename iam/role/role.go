@@ -55,7 +55,7 @@ func (rsp *IAMRoleStackProps) validateProps() error {
 	return errors.Join(errs...)
 }
 
-func NewIAMRoleStack(scope constructs.Construct, id string, props *IAMRoleStackProps) (awscdk.Stack, error) {
+func newIAMRoleStack(scope constructs.Construct, id string, props *IAMRoleStackProps) (awscdk.Stack, error) {
 	var sprops awscdk.StackProps
 	if props != nil {
 		sprops = props.StackProps
@@ -106,7 +106,7 @@ func main() {
 
 	common.AppendScopedTags(app, stackProps.Tags)
 
-	if _, err := NewIAMRoleStack(app, "iamRoleStack", stackProps); err != nil {
+	if _, err := newIAMRoleStack(app, "iamRoleStack", stackProps); err != nil {
 		logrus.Fatal(err)
 	}
 
