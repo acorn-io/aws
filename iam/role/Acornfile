@@ -17,6 +17,8 @@ args: {
 	path: "/"
 	// External IDs to use when assuming the role, as a comma-separated list (i.e. "one,two,three"). Default is none.
 	externalIds: ""
+	// The description attached to the role
+	description: "Acorn created IAM Role"
 }
 
 services: role: {

@@ -24,6 +24,7 @@ type IAMRoleStackProps struct {
 	MaxSessionDurationMinutes int                    `json:"maxSessionDurationMinutes"`
 	Path                      string                 `json:"path"`
 	ExternalIds               string                 `json:"externalIds"`
+	Description               string                 `json:"description"`
 }
 
 func (rsp *IAMRoleStackProps) setDefaults() {
@@ -64,7 +65,7 @@ func newIAMRoleStack(scope constructs.Construct, id string, props *IAMRoleStackP
 
 	roleProps := &awsiam.RoleProps{
 		AssumedBy:          awsiam.NewArnPrincipal(jsii.String(props.TrustedArn)),
-		Description:        jsii.String("Acorn created IAM Role"),
+		Description:        jsii.String(props.Description),
 		InlinePolicies:     &map[string]awsiam.PolicyDocument{"inline": awsiam.PolicyDocument_FromJson(props.Policy)},
 		MaxSessionDuration: awscdk.Duration_Minutes(jsii.Number(props.MaxSessionDurationMinutes)),
 		Path:               jsii.String(props.Path),
