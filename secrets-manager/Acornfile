@@ -9,34 +9,28 @@ args: {
 	region: ""
 }
 
-services: "secret-manager": {
-	generated: job: "generate-secrets"
-}
+services: "secret-manager": generated: job: "generate-secrets"
 
-jobs: {
-	"generate-secrets": {
-		build: {
-			context: "."
-		}
-		schedule: args.refreshSchedule
-		env: {
-			// Default region
-			AWS_REGION: "secret://aws-config/aws-region"
-			// User specified region
-			REGION: args.region
-			FORMAT: args.format
-		}
-		command: [args.arn]
-		permissions: rules: [
-			{
-				apiGroup: "aws.acorn.io"
-				verbs: [
-					"secretsmanager:GetSecretValue",
-				]
-				resources: ["\(args.arn)"]
-			},
-		]
+jobs: "generate-secrets": {
+	build: context: "."
+	schedule: args.refreshSchedule
+	env: {
+		// Default region
+		AWS_REGION: "secret://aws-config/aws-region"
+		// User specified region
+		REGION: args.region
+		FORMAT: args.format
 	}
+	command: [args.arn]
+	permissions: rules: [
+		{
+			apiGroup: "aws.acorn.io"
+			verbs: [
+				"secretsmanager:GetSecretValue",
+			]
+			resources: ["\(args.arn)"]
+		},
+	]
 }
 
 secrets: {
@@ -49,7 +43,7 @@ secrets: {
 			"aws-region": ""
 		}
 	}
-	"item": {
+	item: {
 		type: "generated"
 		params: {
 			job:    "generate-secrets"

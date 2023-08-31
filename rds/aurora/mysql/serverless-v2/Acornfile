@@ -34,7 +34,7 @@ services: rds: {
 
 jobs: apply: {
 	build: {
-		context: "../../../"
+		context:    "../../../"
 		dockerfile: "../../../mysql.Dockerfile"
 		buildArgs: MAIN: "serverless-v2"
 		additionalContexts: {
@@ -123,9 +123,9 @@ if args.username != "" {
 }
 
 images: user: containerBuild: {
-	context: "../../../"
+	context:    "../../../"
 	dockerfile: "../../../mysql.Dockerfile"
-	target:  "user"
+	target:     "user"
 }
 
 secrets: admin: {
@@ -164,4 +164,3 @@ containers: app: {
 }
 ```
 """
-

@@ -1,7 +1,7 @@
-name: "AWS Aurora MySQL Cluster"
+name:        "AWS Aurora MySQL Cluster"
 description: "A managed MySQL cluster running in AWS."
-icon: "../../../icon.png"
-info: localData.info
+icon:        "../../../icon.png"
+info:        localData.info
 
 args: {
 	// Name of the root/admin user. Default is admin.
@@ -39,7 +39,7 @@ services: rds: {
 
 jobs: apply: {
 	build: {
-		context: "../../../"
+		context:    "../../../"
 		dockerfile: "../../../mysql.Dockerfile"
 		buildArgs: MAIN: "cluster"
 		additionalContexts: {
@@ -120,9 +120,9 @@ if args.username != "" {
 }
 
 images: user: containerBuild: {
-	context: "../../../"
-  dockerfile: "../../../mysql.Dockerfile"
-	target:  "user"
+	context:    "../../../"
+	dockerfile: "../../../mysql.Dockerfile"
+	target:     "user"
 }
 
 secrets: admin: {

@@ -8,7 +8,7 @@ containers: plaintext: {
 	ports: publish: ["8080/http"]
 	consumes: ["bucket"]
 	env: {
-		BUCKET_URL: "@{services.bucket.data.url}"
+		BUCKET_URL:  "@{services.bucket.data.url}"
 		BUCKET_NAME: "@{services.bucket.data.name}"
 	}
 }
