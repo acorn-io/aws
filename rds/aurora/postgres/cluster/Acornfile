@@ -8,7 +8,7 @@ args: {
 	adminUsername: "postgres"
 	// Name of an additional user to create. This user will have complete access to the database.
 	// If left blank, no additional user will be created.
-	username: "kyle"
+	username: ""
 	// Name of the database instance. Default is postgres.
 	dbName: "postgres"
 	// Deletion protection, you must set to false in order for the RDS db to be deleted. Default is false.
