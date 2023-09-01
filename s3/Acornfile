@@ -1,3 +1,7 @@
+name:        "AWS S3"
+description: "Amazon's Simple Storage Service"
+info:        "\(localData.info)"
+
 args: {
 	// Name to assign bucket during creation
 	bucketName: "MyBucket"
@@ -9,8 +13,8 @@ args: {
 	deletionProtection: false
 }
 
-services: "readwrite": {
-	name: "S3 Bucket Read and Write"
+services: readwrite: {
+	name:    "S3 Bucket Read and Write"
 	default: true
 	generated: job: "apply"
 	consumer: permissions: rules: [{
@@ -20,7 +24,7 @@ services: "readwrite": {
 	}]
 }
 
-services: "readonly": {
+services: readonly: {
 	name: "S3 Bucket Read Only"
 	generated: job: "apply"
 	consumer: permissions: rules: [{
@@ -30,7 +34,7 @@ services: "readonly": {
 	}]
 }
 
-services: "writeonly": {
+services: writeonly: {
 	name: "S3 Bucket Write Only"
 	generated: job: "apply"
 	consumer: permissions: rules: [{
@@ -40,7 +44,7 @@ services: "writeonly": {
 	}]
 }
 
-services: "admin": {
+services: admin: {
 	name: "S3 Bucket Admin"
 	generated: job: "apply"
 	consumer: permissions: rules: [{
@@ -53,121 +57,117 @@ services: "admin": {
 jobs: {
 	cleanup: {
 		build: {
-			context: "../utils/s3-cleanup/"
+			context:    "../utils/s3-cleanup/"
 			dockerfile: "../utils/s3-cleanup/Dockerfile"
 		}
 		env: {
-				ACORN_EXTERNAL_ID:   "@{acorn.externalID}"
-				CDK_RUNNER_DELETE_PROTECTION: "\(args.deletionProtection)"
+			ACORN_EXTERNAL_ID:            "@{acorn.externalID}"
+			CDK_RUNNER_DELETE_PROTECTION: "\(args.deletionProtection)"
 		}
 		events: ["delete"]
 		permissions: rules: [{
-				apiGroup: "aws.acorn.io"
-				verbs: [
-					 "cloudformation:DescribeStacks",
-					 "cloudformation:DescribeStackResources",
-					 "s3:ListBucketVersions",
-					 "s3:DeleteObject",
-					 "s3:DeleteObjectVersion"
-				]
-				resources: ["*"]
-	  }]
+			apiGroup: "aws.acorn.io"
+			verbs: [
+				"cloudformation:DescribeStacks",
+				"cloudformation:DescribeStackResources",
+				"s3:ListBucketVersions",
+				"s3:DeleteObject",
+				"s3:DeleteObjectVersion",
+			]
+			resources: ["*"]
+		}]
 	}
 
 	apply: {
-			dependsOn: ["cleanup"]
-			build: {
-				context:    "."
-				dockerfile: "Dockerfile"
-				additionalContexts: {
-					 common: "../libs"
-					 utils:  "../utils"
-				}
+		dependsOn: ["cleanup"]
+		build: {
+			context:    "."
+			dockerfile: "Dockerfile"
+			additionalContexts: {
+				common: "../libs"
+				utils:  "../utils"
 			}
-			files: {
-				"/app/config.json":      std.toJSON(args)
-			}
-			env: {
-				CDK_DEFAULT_ACCOUNT: "@{secrets.aws-context.account-id}"
-				CDK_DEFAULT_REGION:  "@{secrets.aws-context.aws-region}"
-				VPC_ID:              "@{secrets.aws-context.vpc-id}"
-				ACORN_ACCOUNT:       "@{acorn.account}"
-				ACORN_NAME:          "@{acorn.name}"
-				ACORN_PROJECT:       "@{acorn.project}"
-				ACORN_EXTERNAL_ID:   "@{acorn.externalID}"
-				CDK_RUNNER_DELETE_PROTECTION: "\(args.deletionProtection)"
-			}
-			events: ["create", "update", "delete"]
-			permissions: rules: [{
-				apiGroup: "aws.acorn.io"
-				verbs: [
-					 "cloudformation:DescribeStacks",
-					 "cloudformation:CreateChangeSet",
-					 "cloudformation:DescribeStackEvents",
-					 "cloudformation:DescribeStackResources",
-					 "cloudformation:DescribeChangeSet",
-					 "cloudformation:ExecuteChangeSet",
-					 "cloudformation:PreviewStackUpdate",
-					 "cloudformation:UpdateStack",
-					 "cloudformation:GetTemplateSummary",
-					 "cloudformation:DeleteStack",
-					 "s3:CreateBucket",
-					 "s3:DeleteBucket",
-					 "s3:PutBucketVersioning",
-					 "s3:GetBucketVersioning",
-					 "s3:PutBucketTagging",
-					 "s3:GetBucketTagging",
-					 "s3:PutBucketPolicy",
-					 "s3:GetBucketPolicy",
-					 "s3:DeleteBucketPolicy",
-				]
-				resources: ["*"]
-			}, {
-					 apiGroup: "aws.acorn.io"
-					 verbs: [
-						 "ec2:DescribeAvailabilityZones",
-						 "ec2:DescribeVpcs",
-						 "ec2:DescribeSubnets",
-						 "ec2:DescribeRouteTables",
-					 ]
-					 resources: ["*"]
-				}, {
-				apiGroup: "api.acorn.io"
-				verbs: [
-					 "create",
-				]
-				resources: ["events"]
-			}]
+		}
+		files: "/app/config.json": std.toJSON(args)
+		env: {
+			CDK_DEFAULT_ACCOUNT:          "@{secrets.aws-context.account-id}"
+			CDK_DEFAULT_REGION:           "@{secrets.aws-context.aws-region}"
+			VPC_ID:                       "@{secrets.aws-context.vpc-id}"
+			ACORN_ACCOUNT:                "@{acorn.account}"
+			ACORN_NAME:                   "@{acorn.name}"
+			ACORN_PROJECT:                "@{acorn.project}"
+			ACORN_EXTERNAL_ID:            "@{acorn.externalID}"
+			CDK_RUNNER_DELETE_PROTECTION: "\(args.deletionProtection)"
+		}
+		events: ["create", "update", "delete"]
+		permissions: rules: [{
+			apiGroup: "aws.acorn.io"
+			verbs: [
+				"cloudformation:DescribeStacks",
+				"cloudformation:CreateChangeSet",
+				"cloudformation:DescribeStackEvents",
+				"cloudformation:DescribeStackResources",
+				"cloudformation:DescribeChangeSet",
+				"cloudformation:ExecuteChangeSet",
+				"cloudformation:PreviewStackUpdate",
+				"cloudformation:UpdateStack",
+				"cloudformation:GetTemplateSummary",
+				"cloudformation:DeleteStack",
+				"s3:CreateBucket",
+				"s3:DeleteBucket",
+				"s3:PutBucketVersioning",
+				"s3:GetBucketVersioning",
+				"s3:PutBucketTagging",
+				"s3:GetBucketTagging",
+				"s3:PutBucketPolicy",
+				"s3:GetBucketPolicy",
+				"s3:DeleteBucketPolicy",
+			]
+			resources: ["*"]
+		}, {
+			apiGroup: "aws.acorn.io"
+			verbs: [
+				"ec2:DescribeAvailabilityZones",
+				"ec2:DescribeVpcs",
+				"ec2:DescribeSubnets",
+				"ec2:DescribeRouteTables",
+			]
+			resources: ["*"]
+		}, {
+			apiGroup: "api.acorn.io"
+			verbs: [
+				"create",
+			]
+			resources: ["events"]
+		}]
 	}
 }
 
 secrets: "aws-context": {
-	name: "AWS Context",
+	name:     "AWS Context"
 	external: "context://aws"
-	type: "opaque"
+	type:     "opaque"
 	data: {
 		"account-id": ""
-		"vpc-id": ""
+		"vpc-id":     ""
 		"aws-region": ""
 	}
 }
 
 localData: info: """
-## Connection Information
-
-### Admin
-Provides complete access to this S3 bucket.
-** URL **: @{service.admin.data.url}
-
-### Read and Write
-Read, write, and delete data in this S3 bucket.
-** URL **: @{service.readwrite.data.url}
-
-### Read Only
-Read only access to this S3 bucket.
-** URL **: @{service.readonly.data.url}
-
-### Write Only
-Write only access to this S3 bucket.
-** URL **: @{service.writeonly.data.url}
-"""
+	## How To Use ([examples](https://github.com/acorn-io/aws/tree/main/s3/examples))
+	
+	1) Declare that your app consumes an acorn named "s3".
+	
+	```typescript
+	containers: app: {
+		 image: "app-image"
+		 consumes: ["s3"]
+		 env: {
+			 BUCKET_URL: "@{@{service.}s3.url}"
+		 }
+	}
+	```
+	
+	2) [Link](https://docs.acorn.io/next/running/linking-acorns) this acorn with your app as "s3" when you run it.
+	"""
