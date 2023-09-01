@@ -167,7 +167,7 @@ localData: info: """
 		 env: {
 			 BUCKET_URL: "@{@{service.}s3.url}"
 			 BUCKET_NAME: "@{@{service.}s3.name}"
-			 BUCKET_ARN: "@{@{service.}s3.name}"
+			 BUCKET_ARN: "@{@{service.}s3.arn}"
 		 }
 	}
 	```
