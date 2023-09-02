@@ -158,19 +158,21 @@ secrets: "aws-context": {
 localData: info: """
 	## How To Use ([examples](https://github.com/acorn-io/aws/tree/main/s3/examples))
 	
-	1) Declare that your app consumes an acorn named "s3".
+	1) Declare that your app consumes an acorn named "s3" via an `external` link to this acorn.
 	
 	```typescript
-	containers: app: {
-		 image: "app-image"
-		 consumes: ["s3"]
-		 env: {
-			 BUCKET_URL: "@{@{service.}s3.url}"
-			 BUCKET_NAME: "@{@{service.}s3.name}"
-			 BUCKET_ARN: "@{@{service.}s3.arn}"
-		 }
-	}
+		services: s3: {
+			external: "@{acorn.name}"
+		}
+		containers: app: {
+				build: context: "./"
+				ports: publish: ["8080/http"]
+				consumes: ["s3"]
+				env: {
+						 BUCKET_URL: "@{@{service.}@{acorn.name}.data.url}"
+						 BUCKET_NAME: "@{@{service.}@{acorn.name}.data.name}"
+						 BUCKET_ARN: "@{@{service.}@{acorn.name}.data.arn}"
+				}
+		}
 	```
-	
-	2) [Link](https://docs.acorn.io/next/running/linking-acorns) this acorn with your app as "s3" when you run it.
 	"""
