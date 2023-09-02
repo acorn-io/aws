@@ -169,9 +169,9 @@ localData: info: """
 				ports: publish: ["8080/http"]
 				consumes: ["s3"]
 				env: {
-						 BUCKET_URL: "@{@{service.}@{acorn.name}.data.url}"
-						 BUCKET_NAME: "@{@{service.}@{acorn.name}.data.name}"
-						 BUCKET_ARN: "@{@{service.}@{acorn.name}.data.arn}"
+						 BUCKET_URL: "@{@{service.}s3.data.url}"
+						 BUCKET_NAME: "@{@{service.}s3.data.name}"
+						 BUCKET_ARN: "@{@{service.}s3.data.arn}"
 				}
 		}
 	```
