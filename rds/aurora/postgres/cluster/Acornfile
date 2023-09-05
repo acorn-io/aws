@@ -143,19 +143,23 @@ secrets: "aws-context": {
 }
 
 localData: info: """
-	## Usage Information
-	
-	[Consume the database](https://docs.acorn.io/authoring/services#consuming-services) from another app.
-	You can use the standard PostgreSQL environment variables that allow libpq based tools to connect automatically.
-	
+	## How To Use ([examples](https://github.com/acorn-io/aws/tree/main/rds/aurora/postgres/cluster/examples))
+
+	1) Link your app with this acorn via an `external` service named "pg".
+
 	```typescript
+	services: pg: {
+		external: "@{acorn.name}"
+	}
 	containers: app: {
+		build: context: "./"
+		ports: publish: ["8080/http"]
 	  env: {
-		  PGDATABASE: "@{@{service.}@{acorn.name}.data.dbName}"
-		  PGHOST: "@{@{service.}@{acorn.name}.data.address}"
-		  PGPORT: "@{@{service.}@{acorn.name}.data.port}"
-		  PGUSER: "@{@{service.}@{acorn.name}.secrets.admin.username}"
-		  PGPASSWORD: "@{@{service.}@{acorn.name}.secrets.admin.password}"
+		  PGDATABASE: "@{@{service.}pg.data.dbName}"
+		  PGHOST: "@{@{service.}pg.data.address}"
+		  PGPORT: "@{@{service.}pg.data.port}"
+		  PGUSER: "@{@{service.}pg.secrets.admin.username}"
+		  PGPASSWORD: "@{@{service.}pg.secrets.admin.password}"
 		}
 	}
 	```
