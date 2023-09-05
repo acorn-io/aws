@@ -1,0 +1,16 @@
+services: db: build: {
+	context:   "../../"
+	acornfile: "../../Acornfile"
+}
+
+containers: scratchpad: {
+	build: context: "./"
+	consumes: ["db"]
+	env: {
+		PGDATABASE: "@{service.db.data.dbName}"
+		PGHOST:     "@{service.db.data.address}"
+		PGPORT:     "@{service.db.data.port}"
+		PGUSER:     "@{service.db.secrets.admin.username}"
+		PGPASSWORD: "@{service.db.secrets.admin.password}"
+	}
+}

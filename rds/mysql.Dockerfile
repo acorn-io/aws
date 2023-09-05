@@ -5,7 +5,7 @@ COPY --from=common . ../libs/
 COPY . .
 RUN --mount=type=cache,target=/root/go/pkg \
     --mount=type=cache,target=/root/.cache/go-build \
-    go build -o rds ./${MAIN} 
+    go build -o rds ./aurora/mysql/${MAIN}
 
 FROM cgr.dev/chainguard/mariadb as user
 WORKDIR /app
@@ -23,7 +23,6 @@ RUN npm install -g aws-cdk
 WORKDIR /app
 COPY ./cdk.json ./
 COPY ./scripts ./scripts
-COPY --from=utils ./scripts/ ./scripts/
 COPY --from=cdk-runner /cdk-runner .
 COPY --from=build /src/rds/rds .
 CMD [ "/app/cdk-runner" ]

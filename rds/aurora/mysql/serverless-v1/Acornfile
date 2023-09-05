@@ -1,0 +1,171 @@
+name:        "AWS Aurora Serverless V1 Database"
+description: "AWS managed on-demand, autoscaling database"
+icon:        "../../../icon.png"
+info:        localData.info
+
+args: {
+	// Name of the root/admin user. Default is admin.
+	adminUsername: "admin"
+	// Name of an additional user to create. This user will have complete access to the database
+	// If left blank, no additional user will be created.
+	username: ""
+	// Name of the database instance. Default is instance.
+	dbName: "instance"
+	// Deletion protection, you must set to false in order for the RDS db to be deleted. Default is false.
+	deletionProtection: false
+	// RDS MySQL Database Parameters to apply to the cluster. Must be k/v string pairs(ex. max_connections: "1000").
+	parameters: {}
+	// Aurora Capacity Units minimum value must be 1, 2, 4, 8, 16, 32, 64, 128, 256, 384. Default is 4.
+	auroraCapacityUnitsMin: 4
+	// Aurora Capacity Units maximum value must be 1, 2, 4, 8, 16, 32, 64, 128, 256, 384. Default is 8.
+	auroraCapacityUnitsMax: 8
+	// Time in minutes to pause Aurora serverless-v1 DB cluster after it's been idle. Default is 10 set to 0 to disable.
+	autoPauseDurationMinutes: 10
+	// Do not take a final snapshot on delete or update and replace operations. Default is false. If skip is enabled the DB will be gone forever if deleted or replaced.
+	skipSnapshotOnDelete: false
+	// Key value pairs of tags to apply to the RDS cluster and all other resources.
+	tags: {}
+}
+
+services: rds: {
+	name:    "Database Instance"
+	default: true
+	generated: job: "apply"
+}
+
+jobs: apply: {
+	name: "CloudFormation Provisioner"
+	build: {
+		context:    "../../../"
+		dockerfile: "../../../mysql.Dockerfile"
+		buildArgs: MAIN: "serverless-v1"
+		additionalContexts: {
+			common: "../../../../libs"
+			utils:  "../../../../utils"
+		}
+	}
+	files: "/app/config.json": std.toJSON(args)
+	env: {
+		CDK_DEFAULT_ACCOUNT:          "@{secrets.aws-context.account-id}"
+		CDK_DEFAULT_REGION:           "@{secrets.aws-context.aws-region}"
+		VPC_ID:                       "@{secrets.aws-context.vpc-id}"
+		ACORN_ACCOUNT:                "@{acorn.account}"
+		ACORN_NAME:                   "@{acorn.name}"
+		ACORN_PROJECT:                "@{acorn.project}"
+		DB_NAME:                      args.dbName
+		DB_USERNAME:                  args.username
+		ACORN_EXTERNAL_ID:            "@{acorn.externalID}"
+		CDK_RUNNER_DELETE_PROTECTION: "\(args.deletionProtection)"
+	}
+	permissions: rules: [{
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"cloudformation:DescribeStacks",
+			"cloudformation:CreateChangeSet",
+			"cloudformation:DescribeStackEvents",
+			"cloudformation:DescribeStackResources",
+			"cloudformation:DescribeChangeSet",
+			"cloudformation:ListChangeSets",
+			"cloudformation:ExecuteChangeSet",
+			"cloudformation:PreviewStackUpdate",
+			"cloudformation:UpdateStack",
+			"cloudformation:RollbackStack",
+			"cloudformation:GetTemplate",
+			"cloudformation:GetTemplateSummary",
+			"cloudformation:DeleteStack",
+			"ssm:GetParameters",
+			"secretsmanager:*",
+			"ec2:*",
+			"rds:*",
+		]
+		resources: ["*"]
+	}, {
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"iam:CreateServiceLinkedRole",
+		]
+		resources: ["arn:aws:iam::*:role/aws-service-role/rds.amazonaws.com/AWSServiceRoleForRDS"]
+	}, {
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"ec2:DescribeAvailabilityZones",
+			"ec2:DescribeVpcs",
+			"ec2:DescribeSubnets",
+			"ec2:DescribeRouteTables",
+		]
+		resources: ["*"]
+	}, {
+		apiGroup: "api.acorn.io"
+		verbs: [
+			"create",
+		]
+		resources: ["events"]
+	}]
+	events: ["create", "update", "delete"]
+}
+
+if args.username != "" {
+	jobs: "create-user": {
+		name:  "Create Additional User"
+		build: images.user.containerBuild
+		dependsOn: ["apply"]
+		env: {
+			MYSQL_ADMIN_USER:     args.adminUsername
+			MYSQL_ADMIN_PASSWORD: "@{secrets.admin.password}"
+			MYSQL_USER:           args.username
+			MYSQL_PASSWORD:       "@{secrets.user.password}"
+			MYSQL_HOST:           "@{service.rds.address}"
+			MYSQL_DATABASE:       args.dbName
+		}
+	}
+
+	secrets: user: {
+		name: "User Credential"
+		type: "basic"
+		data: username: args.username
+	}
+}
+
+images: user: containerBuild: {
+	context:    "../../../"
+	dockerfile: "../../../mysql.Dockerfile"
+	target:     "user"
+}
+
+secrets: admin: {
+	name: "Admin Credential"
+	type: "generated"
+	params: job: "apply"
+}
+
+secrets: "aws-context": {
+	external: "context://aws"
+	type:     "opaque"
+	data: {
+		"account-id": ""
+		"vpc-id":     ""
+		"aws-region": ""
+	}
+}
+
+localData: info: """
+## Connection Information
+
+**Address**: @{services.rds.address}:@{services.rds.port.3306} \\
+**Admin User Name**: \(args.adminUsername) \\
+**Admin User Secret**: @{acorn.name}.admin
+
+## Sample Usage
+```typescript
+containers: app: {
+  image: "app-image"
+  env: {
+    DB_HOST: "@{@{service.}@{acorn.name}.address}"
+    DB_PORT: "@{@{service.}@{acorn.name}.port.3306}"
+    DB_NAME: "@{@{service.}@{acorn.name}.data.dbName}"
+    DB_USER: "@{@{service.}@{acorn.name}.secrets.admin.username}"
+    DB_PASS: "@{@{service.}@{acorn.name}.secrets.admin.password}"
+  }
+}
+```
+"""

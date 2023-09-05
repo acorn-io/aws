@@ -1,0 +1,166 @@
+name:        "AWS Aurora PostgreSQL Cluster"
+description: "A managed PostgreSQL cluster running in AWS."
+icon:        "../../../icon.png"
+info:        localData.info
+
+args: {
+	// Name of the root/admin user. Default is postgres.
+	adminUsername: "postgres"
+	// Name of an additional user to create. This user will have complete access to the database.
+	// If left blank, no additional user will be created.
+	username: ""
+	// Name of the database instance. Default is postgres.
+	dbName: "postgres"
+	// Deletion protection, you must set to false in order for the RDS db to be deleted. Default is false.
+	deletionProtection: false
+	// The instance class for the database server to use. Default is "burstable".
+	// - burstable (good for dev/test and light workloads.)
+	// - burstableGraviton (good for dev/test and light workloads.)
+	// - memoryOptimized (good for memory intensive workloads.)
+	// **Updating this setting will cause downtime on the RDS instance.**
+	instanceClass: "burstable"
+	// The instance size to use.(medium, large, xlarge, or 2xlarge) Default is "medium". Not all instance sizes are available in all regions.
+	// **Updating this setting will cause downtime on the RDS instance.**
+	instanceSize: "medium"
+	// RDS PostgreSQL Database Parameters to apply to the cluster. Must be k/v string pairs(ex. max_connections: "1000").
+	parameters: {}
+	// Do not take a final snapshot on delete or update and replace operations. Default is false. If skip is enabled the DB will be gone forever if deleted or replaced.
+	skipSnapshotOnDelete: false
+	// Enable Performance insights. Default is false.
+	enablePerformanceInsights: false
+	// Key value pairs of tags to apply to the RDS cluster and all other resources.
+	tags: {}
+}
+
+services: rds: {
+	default: true
+	generated: job: "apply"
+}
+
+jobs: apply: {
+	build: {
+		context:    "../../../"
+		dockerfile: "../../../postgres.Dockerfile"
+		buildArgs: MAIN: "cluster"
+		additionalContexts: {
+			common: "../../../../libs"
+			utils:  "../../../../utils"
+		}
+	}
+	files: "/app/config.json": std.toJSON(args)
+	memory: 1024Mi
+	env: {
+		CDK_DEFAULT_ACCOUNT:          "@{secrets.aws-context.account-id}"
+		CDK_DEFAULT_REGION:           "@{secrets.aws-context.aws-region}"
+		VPC_ID:                       "@{secrets.aws-context.vpc-id}"
+		ACORN_ACCOUNT:                "@{acorn.account}"
+		ACORN_NAME:                   "@{acorn.name}"
+		ACORN_PROJECT:                "@{acorn.project}"
+		DB_NAME:                      args.dbName
+		DB_USERNAME:                  args.username
+		ACORN_EXTERNAL_ID:            "@{acorn.externalID}"
+		CDK_RUNNER_DELETE_PROTECTION: "\(args.deletionProtection)"
+	}
+	permissions: rules: [{
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"cloudformation:DescribeStacks",
+			"cloudformation:CreateChangeSet",
+			"cloudformation:DescribeStackEvents",
+			"cloudformation:DescribeStackResources",
+			"cloudformation:DescribeChangeSet",
+			"cloudformation:ListChangeSets",
+			"cloudformation:ExecuteChangeSet",
+			"cloudformation:PreviewStackUpdate",
+			"cloudformation:UpdateStack",
+			"cloudformation:RollbackStack",
+			"cloudformation:GetTemplate",
+			"cloudformation:GetTemplateSummary",
+			"cloudformation:DeleteStack",
+			"ssm:GetParameters",
+			"secretsmanager:*",
+			"ec2:*",
+			"rds:*",
+		]
+		resources: ["*"]
+	}, {
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"iam:CreateServiceLinkedRole",
+		]
+		resources: ["arn:aws:iam::*:role/aws-service-role/rds.amazonaws.com/AWSServiceRoleForRDS"]
+	}, {
+		apiGroup: "api.acorn.io"
+		verbs: [
+			"create",
+		]
+		resources: ["events"]
+	}]
+	events: ["create", "update", "delete"]
+}
+
+if args.username != "" {
+	jobs: "create-user": {
+		build: images.user.containerBuild
+		dependsOn: ["apply"]
+		env: {
+			PGUSER:            args.adminUsername
+			PGPASSWORD:        "@{secrets.admin.password}"
+			NEW_PGUSER:        args.username
+			NEW_PGPASSWORD:    "@{secrets.user.password}"
+			PGHOST:            "@{service.rds.address}"
+			PGDATABASE:        args.dbName
+			PGCONNECT_TIMEOUT: "2"
+		}
+	}
+
+	secrets: user: {
+		name: "User Credential"
+		type: "basic"
+		data: username: args.username
+	}
+}
+
+images: user: containerBuild: {
+	context:    "../../../"
+	dockerfile: "../../../postgres.Dockerfile"
+	target:     "user"
+}
+
+secrets: admin: {
+	type: "generated"
+	params: job: "apply"
+}
+
+secrets: "aws-context": {
+	external: "context://aws"
+	type:     "opaque"
+	data: {
+		"account-id": ""
+		"vpc-id":     ""
+		"aws-region": ""
+	}
+}
+
+localData: info: """
+	## How To Use ([examples](https://github.com/acorn-io/aws/tree/main/rds/aurora/postgres/cluster/examples))
+
+	1) Link your app with this acorn via an `external` service named "pg".
+
+	```typescript
+	services: pg: {
+		external: "@{acorn.name}"
+	}
+	containers: app: {
+		build: context: "./"
+		ports: publish: ["8080/http"]
+	  env: {
+		  PGDATABASE: "@{@{service.}pg.data.dbName}"
+		  PGHOST: "@{@{service.}pg.data.address}"
+		  PGPORT: "@{@{service.}pg.data.port}"
+		  PGUSER: "@{@{service.}pg.secrets.admin.username}"
+		  PGPASSWORD: "@{@{service.}pg.secrets.admin.password}"
+		}
+	}
+	```
+	"""

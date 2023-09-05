@@ -1,46 +1,45 @@
-name:        "AWS Aurora Serverless Database"
+name:        "AWS Aurora Serverless V2 Database"
 description: "AWS managed on-demand, autoscaling database"
-icon:        "icon.png"
+icon:        "../../../icon.png"
 info:        localData.info
 
 args: {
-	// Name of the root/admin user. Default is admin.
+	// Name of the root/admin user. Default is admin
 	adminUsername: "admin"
-	// Name of an additional user to create. This user will have complete access to the database
-	// If left blank, no additional user will be created.
+	// Name of an additional user to create. This user will have complete access to the database.
+	// If left empty, no additional user will be created.
 	username: ""
-	// Name of the database instance. Default is instance.
+	// Name of the database. Default is instance
 	dbName: "instance"
-	// Deletion protection, you must set to false in order for the RDS db to be deleted. Default is false.
+	// Deletion protection, you must set to false in order for the RDS db to be deleted. Default is false
 	deletionProtection: false
+	// Aurora Capacity Units minimum value(in 0.5 increments). Default is 0.5
+	auroraCapacityUnitsV2Min: *0.5 | float | int
+	// Aurora Capacity Units maximum value must be larger than minimum value, and 1<=n<=128 (in 0.5 increments). Default is 8.0
+	auroraCapacityUnitsV2Max: *8.0 | float | int
 	// RDS MySQL Database Parameters to apply to the cluster. Must be k/v string pairs(ex. max_connections: "1000").
 	parameters: {}
-	// Aurora Capacity Units minimum value must be 1, 2, 4, 8, 16, 32, 64, 128, 256, 384. Default is 4.
-	auroraCapacityUnitsMin: 4
-	// Aurora Capacity Units maximum value must be 1, 2, 4, 8, 16, 32, 64, 128, 256, 384. Default is 8.
-	auroraCapacityUnitsMax: 8
-	// Time in minutes to pause Aurora serverless DB cluster after it's been idle. Default is 10 set to 0 to disable.
-	autoPauseDurationMinutes: 10
 	// Do not take a final snapshot on delete or update and replace operations. Default is false. If skip is enabled the DB will be gone forever if deleted or replaced.
 	skipSnapshotOnDelete: false
+	// Enable Performance Insights. Default is false.
+	enablePerformanceInsights: false
 	// Key value pairs of tags to apply to the RDS cluster and all other resources.
 	tags: {}
 }
 
 services: rds: {
-	name:    "Database Instance"
 	default: true
 	generated: job: "apply"
 }
 
 jobs: apply: {
-	name: "CloudFormation Provisioner"
 	build: {
-		context: ".."
-		buildArgs: MAIN: "serverless"
+		context:    "../../../"
+		dockerfile: "../../../mysql.Dockerfile"
+		buildArgs: MAIN: "serverless-v2"
 		additionalContexts: {
-			common: "../../libs"
-			utils:  "../../utils"
+			common: "../../../../libs"
+			utils:  "../../../../utils"
 		}
 	}
 	files: "/app/config.json": std.toJSON(args)
@@ -56,56 +55,55 @@ jobs: apply: {
 		ACORN_EXTERNAL_ID:            "@{acorn.externalID}"
 		CDK_RUNNER_DELETE_PROTECTION: "\(args.deletionProtection)"
 	}
-	permissions: rules: [{
-		apiGroup: "aws.acorn.io"
-		verbs: [
-			"cloudformation:DescribeStacks",
-			"cloudformation:CreateChangeSet",
-			"cloudformation:DescribeStackEvents",
-			"cloudformation:DescribeStackResources",
-			"cloudformation:DescribeChangeSet",
-			"cloudformation:ListChangeSets",
-			"cloudformation:ExecuteChangeSet",
-			"cloudformation:PreviewStackUpdate",
-			"cloudformation:UpdateStack",
-			"cloudformation:RollbackStack",
-			"cloudformation:GetTemplate",
-			"cloudformation:GetTemplateSummary",
-			"cloudformation:DeleteStack",
-			"ssm:GetParameters",
-			"secretsmanager:*",
-			"ec2:*",
-			"rds:*",
-		]
-		resources: ["*"]
-	}, {
-		apiGroup: "aws.acorn.io"
-		verbs: [
-			"iam:CreateServiceLinkedRole",
-		]
-		resources: ["arn:aws:iam::*:role/aws-service-role/rds.amazonaws.com/AWSServiceRoleForRDS"]
-	}, {
-		apiGroup: "aws.acorn.io"
-		verbs: [
-			"ec2:DescribeAvailabilityZones",
-			"ec2:DescribeVpcs",
-			"ec2:DescribeSubnets",
-			"ec2:DescribeRouteTables",
-		]
-		resources: ["*"]
-	}, {
-		apiGroup: "api.acorn.io"
-		verbs: [
-			"create",
-		]
-		resources: ["events"]
-	}]
+	permissions: rules: [
+		{
+			apiGroup: "aws.acorn.io"
+			verbs: [
+				"cloudformation:DescribeStacks",
+				"cloudformation:CreateChangeSet",
+				"cloudformation:DescribeChangeSet",
+				"cloudformation:ListChangeSets",
+				"cloudformation:DescribeStackEvents",
+				"cloudformation:DescribeStackResources",
+				"cloudformation:ExecuteChangeSet",
+				"cloudformation:PreviewStackUpdate",
+				"cloudformation:UpdateStack",
+				"cloudformation:RollbackStack",
+				"cloudformation:GetTemplate",
+				"cloudformation:GetTemplateSummary",
+				"cloudformation:DeleteStack",
+				"ssm:GetParameters",
+				"secretsmanager:*",
+				"ec2:*",
+				"rds:*",
+			]
+			resources: ["*"]
+		}, {
+			apiGroup: "aws.acorn.io"
+			verbs: ["iam:CreateServiceLinkedRole"]
+			resources: ["arn:aws:iam::*:role/aws-service-role/rds.amazonaws.com/AWSServiceRoleForRDS"]
+		}, {
+			apiGroup: "aws.acorn.io"
+			verbs: [
+				"ec2:DescribeAvailabilityZones",
+				"ec2:DescribeVpcs",
+				"ec2:DescribeSubnets",
+				"ec2:DescribeRouteTables",
+			]
+			resources: ["*"]
+		}, {
+			apiGroup: "api.acorn.io"
+			verbs: [
+				"create",
+			]
+			resources: ["events"]
+		},
+	]
 	events: ["create", "update", "delete"]
 }
 
 if args.username != "" {
 	jobs: "create-user": {
-		name:  "Create Additional User"
 		build: images.user.containerBuild
 		dependsOn: ["apply"]
 		env: {
@@ -119,19 +117,18 @@ if args.username != "" {
 	}
 
 	secrets: user: {
-		name: "User Credential"
 		type: "basic"
 		data: username: args.username
 	}
 }
 
 images: user: containerBuild: {
-	context: ".."
-	target:  "user"
+	context:    "../../../"
+	dockerfile: "../../../mysql.Dockerfile"
+	target:     "user"
 }
 
 secrets: admin: {
-	name: "Admin Credential"
 	type: "generated"
 	params: job: "apply"
 }
@@ -165,6 +162,5 @@ containers: app: {
     DB_PASS: "@{@{service.}@{acorn.name}.secrets.admin.password}"
   }
 }
-
 ```
 """

@@ -23,11 +23,6 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 		sprops = props.StackProps
 	}
 
-	err := common.NewConfig(props)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
 	stack := awscdk.NewStack(scope, jsii.String("Stack"), &sprops)
 
 	vpc := awsec2.Vpc_FromLookup(stack, jsii.String("VPC"), &awsec2.VpcLookupOptions{
@@ -37,7 +32,7 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 	subnetGroup := rds.GetPrivateSubnetGroup(stack, jsii.String("SubnetGroup"), vpc)
 
 	sgs := &[]awsec2.ISecurityGroup{
-		rds.GetAllowAllVPCSecurityGroup(stack, jsii.String("SG"), vpc),
+		rds.GetAllowAllVPCSecurityGroup(stack, jsii.String("SG"), vpc, 3306),
 	}
 
 	creds := awsrds.Credentials_FromGeneratedSecret(jsii.String(props.AdminUser), &awsrds.CredentialsBaseOptions{})
@@ -47,26 +42,22 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 		parameterGroup = rds.NewParameterGroup(stack, jsii.String("ParameterGroup"), props, engine)
 	}
 
-	if !rds.ValidInstanceParameters(props.InstanceClass, props.InstanceSize) {
-		logrus.Fatal("Invalid instance class or size provided, check acorn run [IMAGE] --help for valid options")
-	}
-
 	cluster := awsrds.NewDatabaseCluster(stack, jsii.String("Cluster"), &awsrds.DatabaseClusterProps{
-		Engine:              engine,
-		DefaultDatabaseName: jsii.String(props.DatabaseName),
-		CopyTagsToSnapshot:  jsii.Bool(true),
-		Credentials:         creds,
-		DeletionProtection:  jsii.Bool(props.DeletionProtection),
-		RemovalPolicy:       rds.GetRemovalPolicy(props),
-		SubnetGroup:         subnetGroup,
-		Vpc:                 vpc,
-		SecurityGroups:      sgs,
-		ParameterGroup:      parameterGroup,
-		Writer: awsrds.ClusterInstance_Provisioned(jsii.String("Instance"), &awsrds.ProvisionedClusterInstanceProps{
-			InstanceType:              awsec2.InstanceType_Of(rds.ComputeClassMap[props.InstanceClass], rds.InstanceSizeMap[props.InstanceSize]),
-			IsFromLegacyInstanceProps: jsii.Bool(true),
+		Engine:                  engine,
+		DefaultDatabaseName:     jsii.String(props.DatabaseName),
+		DeletionProtection:      jsii.Bool(props.DeletionProtection),
+		CopyTagsToSnapshot:      jsii.Bool(true),
+		RemovalPolicy:           rds.GetRemovalPolicy(props),
+		Credentials:             creds,
+		Vpc:                     vpc,
+		SecurityGroups:          sgs,
+		ServerlessV2MinCapacity: jsii.Number(props.AuroraCapacityUnitsV2Min),
+		ServerlessV2MaxCapacity: jsii.Number(props.AuroraCapacityUnitsV2Max),
+		Writer: awsrds.ClusterInstance_ServerlessV2(jsii.String("Instance"), &awsrds.ServerlessV2ClusterInstanceProps{
 			EnablePerformanceInsights: jsii.Bool(props.EnablePerformanceInsights),
 		}),
+		SubnetGroup:    subnetGroup,
+		ParameterGroup: parameterGroup,
 	})
 
 	port := "3306"

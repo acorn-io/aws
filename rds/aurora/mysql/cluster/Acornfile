@@ -1,3 +1,8 @@
+name:        "AWS Aurora MySQL Cluster"
+description: "A managed MySQL cluster running in AWS."
+icon:        "../../../icon.png"
+info:        localData.info
+
 args: {
 	// Name of the root/admin user. Default is admin.
 	adminUsername: "admin"
@@ -34,11 +39,12 @@ services: rds: {
 
 jobs: apply: {
 	build: {
-		context: ".."
-		buildArgs: MAIN: "aurora-cluster"
+		context:    "../../../"
+		dockerfile: "../../../mysql.Dockerfile"
+		buildArgs: MAIN: "cluster"
 		additionalContexts: {
-			common: "../../libs"
-			utils:  "../../utils"
+			common: "../../../../libs"
+			utils:  "../../../../utils"
 		}
 	}
 	files: "/app/config.json": std.toJSON(args)
@@ -114,8 +120,9 @@ if args.username != "" {
 }
 
 images: user: containerBuild: {
-	context: ".."
-	target:  "user"
+	context:    "../../../"
+	dockerfile: "../../../mysql.Dockerfile"
+	target:     "user"
 }
 
 secrets: admin: {
@@ -132,3 +139,25 @@ secrets: "aws-context": {
 		"aws-region": ""
 	}
 }
+
+localData: info: """
+## Connection Information
+
+**Address**: @{services.rds.address}:@{services.rds.port.3306} \\
+**Admin User Name**: \(args.adminUsername) \\
+**Admin User Secret**: @{acorn.name}.admin
+
+## Sample Usage
+```typescript
+containers: app: {
+  image: "app-image"
+  env: {
+    DB_HOST: "@{@{service.}@{acorn.name}.address}"
+    DB_PORT: "@{@{service.}@{acorn.name}.port.3306}"
+    DB_NAME: "@{@{service.}@{acorn.name}.data.dbName}"
+    DB_USER: "@{@{service.}@{acorn.name}.secrets.admin.username}"
+    DB_PASS: "@{@{service.}@{acorn.name}.secrets.admin.password}"
+  }
+}
+```
+"""

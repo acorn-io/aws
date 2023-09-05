@@ -34,9 +34,7 @@ jobs: apply: {
 			utils:  "../../utils"
 		}
 	}
-	files: {
-		"/app/config.json": std.toJSON(args)
-	}
+	files: "/app/config.json": std.toJSON(args)
 	env: {
 		CDK_DEFAULT_ACCOUNT: "@{secrets.aws-context.account-id}"
 		CDK_DEFAULT_REGION:  "@{secrets.aws-context.aws-region}"
