@@ -23,11 +23,6 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 		sprops = props.StackProps
 	}
 
-	err := common.NewConfig(props)
-	if err != nil {
-		logrus.Fatal(err)
-	}
-
 	stack := awscdk.NewStack(scope, jsii.String("Stack"), &sprops)
 
 	vpc := awsec2.Vpc_FromLookup(stack, jsii.String("VPC"), &awsec2.VpcLookupOptions{
