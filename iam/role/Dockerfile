@@ -1,12 +1,12 @@
 FROM cgr.dev/chainguard/go as build
 
-WORKDIR /src/amp
-COPY --from=common . ../libs/
+WORKDIR /src/iam/role
+COPY --from=common . ../../libs/
 COPY . .
 
 RUN --mount=type=cache,target=/root/go/pkg \
     --mount=type=cache,target=/root/.cache/go-build \
-    go build -o amp . 
+    go build -o role .
 
 FROM ghcr.io/acorn-io/aws/utils/cdk-runner:v0.6.0 as cdk-runner
 FROM cgr.dev/chainguard/wolfi-base
@@ -18,5 +18,5 @@ COPY ./cdk.json ./
 COPY ./scripts ./scripts
 COPY --from=utils ./scripts/ ./scripts/
 COPY --from=cdk-runner /cdk-runner .
-COPY --from=build /src/amp/amp .
+COPY --from=build /src/iam/role/role .
 CMD [ "/app/cdk-runner" ]
