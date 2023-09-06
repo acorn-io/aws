@@ -3,11 +3,28 @@ on:
   push:
     tags:
       - "**/v[0-9]*"
-    paths:
-      - "utils/**"
 
 jobs:
+  changes:
+    name: Check paths
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    outputs:
+      utils: ${{ steps.filter.outputs.utils }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Filter
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            utils:
+              - 'utils/**'
   publish:
+    needs: changes
+    if: ${{ needs.changes.outputs.utils == 'true' }}
     name: Publish
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
@@ -25,7 +42,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Set tag
+      - name: Set image and tag
         run: ./scripts/setup_tags.sh
       - name: Build and Publish Docker Images
         run: |
