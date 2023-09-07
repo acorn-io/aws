@@ -126,22 +126,25 @@ secrets: "aws-context": {
 localData: info: """
 	## Connection Information
 
-	**URL**: @{services.sqs.data.url}
-	**Queue Name**: @{services.sqs.data.name}
-	**ARN**: @{services.sqs.data.arn}
+	**URL**: @{services.admin.data.url}
+	**Queue Name**: @{services.admin.data.name}
+	**ARN**: @{services.admin.data.arn}
 
 	## Sample Usage
 	```typescript
+	services: sqs: {
+		external: "@{acorn.name}"
+	}
 	containers: app: {
 		image: "app-image"
 		consumes: ["sqs"]
 		env: {
-			QUEUE_URL: "@{services.sqs.data.url}"
+			QUEUE_URL: "@{@{service.}sqs.data.url}"
 		}
 	}
 	```
 
 	## Example
-	
+
 	[Example pub-sub SQS Queue](https://github.com/acorn-io/aws/tree/master/sqs/examples)
 	"""
