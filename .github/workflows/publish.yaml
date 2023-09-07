@@ -1,27 +1,46 @@
 name: Publish Acorn service image
-
 on:
   push:
     tags:
       - "**/v[0-9]*"
-    paths-ignore:
-      - "utils/**"
 
 jobs:
+  changes:
+    name: Check paths
+    runs-on: buildjet-4vcpu-ubuntu-2204
+    outputs:
+      utils: ${{ steps.filter.outputs.utils }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Filter
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            utils:
+              - 'utils/**'
   publish:
+    needs: changes
+    if: ${{ needs.changes.outputs.utils == 'false' }}
     runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
       - uses: acorn-io/actions-setup@v2
         with:
           acorn-version: "main"
-      - uses: acorn-io/actions-login@v1
+      - name: Login to GHCR
+        uses: acorn-io/actions-login@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: set image and tag
+      - name: Set image and tag
         run: ./scripts/setup_tags.sh
       - name: Build and Publish
         run: |
