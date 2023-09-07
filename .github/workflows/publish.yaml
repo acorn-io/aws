@@ -35,7 +35,7 @@ jobs:
         with:
           acorn-version: "main"
       - name: Login to GHCR
-        uses: acorn-io/actions-login@v2
+        uses: acorn-io/actions-login@v1
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
