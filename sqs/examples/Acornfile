@@ -1,7 +1,4 @@
-services: queue: build: {
-	context:   "../"
-	acornfile: "../Acornfile"
-}
+services: queue: image: "ghcr.io/acorn-io/aws/sqs:v0.#.#"
 
 containers: sender: {
 	build: context: "./sender"
