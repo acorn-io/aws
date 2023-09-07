@@ -1,7 +1,4 @@
-services: bucket: build: {
-	context:   "../../"
-	acornfile: "../../Acornfile"
-}
+services: bucket: image: "ghcr.io/acorn-io/aws/s3:v0.#.#"
 
 containers: plaintext: {
 	build: context: "./"
