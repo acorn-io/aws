@@ -66,6 +66,7 @@ func newRedisStack(scope constructs.Construct, props *redisStackProps) (awscdk.S
 	secretOutput, err := sm.CreateSecret(&secretsmanager.CreateSecretInput{
 		Name:         jsii.String(props.ClusterName + "-token"),
 		SecretString: jsii.String(token),
+		Description:  jsii.String("Acorn generated secret for Redis authentication."),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create token secret: %w", err)

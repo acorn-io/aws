@@ -11,7 +11,7 @@ ADDRESS=$(jq -r '.[] | select(.OutputKey=="address")|.OutputValue' outputs.json)
 PORT=$(jq -r '.[]| select(.OutputKey=="port")|.OutputValue' outputs.json)
 TOKEN_ARN=$(jq -r '.[]| select(.OutputKey=="tokenarn")|.OutputValue' outputs.json)
 
-TOKEN="$(aws --output json secretsmanager get-secret-value --secret-id "${TOKEN_ARN}" --query 'SecretString' | jq -r .|jq -r ."${CLUSTER_NAME}-token")"
+TOKEN="$(aws --output text secretsmanager get-secret-value --secret-id "${TOKEN_ARN}" --query 'SecretString')"
 
 cat > /run/secrets/output<<EOF
 services: redis: {
