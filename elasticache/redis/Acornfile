@@ -1,0 +1,88 @@
+name:        "AWS Elasticache Redis"
+description: "Amazon's Redis compatible Elasticache cluster"
+
+args: {
+	// Name assigned to the cluster during creation. Default value is "RedisCluster".
+	clusterName: "RedisCluster"
+
+	// Key value pairs to apply to all resources.
+	tags: {}
+
+	// Deletion protection. Must be set to false in order to delete the Redis clutser. Default value is false.
+	deletionProtection: false
+}
+
+services: redis: {
+	name: "Redis Admin"
+	generated: job: "apply"
+}
+
+jobs: apply: {
+	build: {
+		context:    "../"
+		dockerfile: "../redis.Dockerfile"
+		additionalContexts: {
+			common: "../../libs"
+			utils:  "../../utils"
+		}
+	}
+	files: "/app/config.json": std.toJSON(args)
+	env: {
+		CDK_DEFAULT_ACCOUNT:          "@{secrets.aws-context.account-id}"
+		CDK_DEFAULT_REGION:           "@{secrets.aws-context.aws-region}"
+		VPC_ID:                       "@{secrets.aws-context.vpc-id}"
+		ACORN_ACCOUNT:                "@{acorn.account}"
+		ACORN_NAME:                   "@{acorn.name}"
+		ACORN_PROJECT:                "@{acorn.project}"
+		ACORN_EXTERNAL_ID:            "@{acorn.externalID}"
+		CDK_RUNNER_DELETE_PROTECTION: "\(args.deletionProtection)"
+	}
+	events: ["create", "update", "delete"]
+	permissions: rules: [{
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"cloudformation:DescribeStacks",
+			"cloudformation:CreateChangeSet",
+			"cloudformation:DescribeStackEvents",
+			"cloudformation:DescribeStackResources",
+			"cloudformation:DescribeChangeSet",
+			"cloudformation:ExecuteChangeSet",
+			"cloudformation:PreviewStackUpdate",
+			"cloudformation:UpdateStack",
+			"cloudformation:GetTemplateSummary",
+			"cloudformation:DeleteStack",
+			"ec2:*",
+			"elasticache:*",
+			"secretsmanager:*",
+		]
+		resources: ["*"]
+	}, {
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"iam:CreateServiceLinkedRole",
+		]
+		resources: ["arn:aws:iam::*:role/aws-service-role/elasticache.amazonaws.com/AWSServiceRoleForElastiCache"]
+	}, {
+		apiGroup: "api.acorn.io"
+		verbs: [
+			"create",
+		]
+		resources: ["events"]
+	}]
+}
+
+secrets: admin: {
+	type: "generated"
+	params: job: "apply"
+}
+
+secrets: "aws-context": {
+	name:     "AWS Context"
+	external: "context://aws"
+	type:     "opaque"
+	data: {
+		"account-id": ""
+		"vpc-id":     ""
+		"aws-region": ""
+	}
+}
