@@ -37,7 +37,7 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 	subnetGroup := rds.GetPrivateSubnetGroup(stack, jsii.String("SubnetGroup"), vpc)
 
 	sgs := &[]awsec2.ISecurityGroup{
-		rds.GetAllowAllVPCSecurityGroup(stack, jsii.String("SG"), vpc, 3306),
+		common.GetAllowAllVPCSecurityGroup(stack, jsii.String("SG"), jsii.String("Acorn generated RDS security group."), vpc, 3306),
 	}
 
 	creds := awsrds.Credentials_FromGeneratedSecret(jsii.String(props.AdminUser), &awsrds.CredentialsBaseOptions{})

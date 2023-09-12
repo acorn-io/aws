@@ -14,10 +14,11 @@ TOKEN_ARN=$(jq -r '.[]| select(.OutputKey=="tokenarn")|.OutputValue' outputs.jso
 TOKEN="$(aws --output text secretsmanager get-secret-value --secret-id "${TOKEN_ARN}" --query 'SecretString')"
 
 cat > /run/secrets/output<<EOF
-services: redis: {
+services: admin: {
   default: true
   address: "${ADDRESS}"
   ports: [${PORT}]
+  secrets: ["admin"]
   data: {
     clusterName: "${CLUSTER_NAME}"
     address: "${ADDRESS}"

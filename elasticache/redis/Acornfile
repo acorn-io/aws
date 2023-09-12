@@ -3,17 +3,24 @@ description: "Amazon's Redis compatible Elasticache cluster"
 
 args: {
 	// Name assigned to the cluster during creation. Default value is "RedisCluster".
-	clusterName: "RedisCluster"
+	clusterName: "Redis"
 
 	// Key value pairs to apply to all resources.
 	tags: {}
 
 	// Deletion protection. Must be set to false in order to delete the Redis clutser. Default value is false.
 	deletionProtection: false
+
+	// The cache node type used in the elasticache cluster. See https://aws.amazon.com/elasticache/pricing/ for a list of options. Default value is "cache.t4g.micro".
+	nodeType: "cache.t4g.micro"
+
+	// The number of cache nodes used in the elasticache cluster. Default value is 2. One primary and one read replica. Automatic failover is enabled for values >1.
+	numNodes: 2
 }
 
-services: redis: {
+services: admin: {
 	name: "Redis Admin"
+	default: true
 	generated: job: "apply"
 }
 
@@ -23,9 +30,10 @@ jobs: apply: {
 		dockerfile: "../redis.Dockerfile"
 		additionalContexts: {
 			common: "../../libs"
-			utils:  "../../utils"
 		}
 	}
+//	entrypoint: "sleep"
+//	command: ["7200"]
 	files: "/app/config.json": std.toJSON(args)
 	env: {
 		CDK_DEFAULT_ACCOUNT:          "@{secrets.aws-context.account-id}"
@@ -71,7 +79,7 @@ jobs: apply: {
 	}]
 }
 
-secrets: admin: {
+secrets: "admin": {
 	type: "generated"
 	params: job: "apply"
 }
