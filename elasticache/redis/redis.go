@@ -1,8 +1,6 @@
 package main
 
 import (
-	"os"
-
 	"github.com/acorn-io/aws/elasticache"
 	"github.com/acorn-io/services/aws/libs/common"
 	"github.com/aws/aws-cdk-go/awscdk/v2"
@@ -60,7 +58,7 @@ func NewRedisStack(scope constructs.Construct, id string, props *redisStackProps
 	// it might seem like creating a replication group is not the same as creating a cluster
 	// but actually it creates the cluster and the replication group in one go
 	redisRG := awselasticache.NewCfnReplicationGroup(stack, jsii.String(props.ClusterName), &awselasticache.CfnReplicationGroupProps{
-		ReplicationGroupId:          jsii.String(os.Getenv("ACORN_NAME") + "Rg"),
+		ReplicationGroupId:          jsii.String(elasticache.ResourceID("Rg")),
 		ReplicationGroupDescription: jsii.String("Acorn created Redis replication group"),
 		Engine:                      jsii.String("redis"),
 		CacheNodeType:               jsii.String(props.NodeType),
