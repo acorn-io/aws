@@ -2,6 +2,7 @@ package elasticache
 
 import (
 	"os"
+	"strings"
 
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsec2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awselasticache"
@@ -9,9 +10,16 @@ import (
 	"github.com/aws/jsii-runtime-go"
 )
 
-// ResourceID returns an ID that can be used to uniquely identify resources it appends the given suffix to the ID
-func ResourceID(suffix string) string {
-	return os.Getenv("ACORN_PROJECT") + os.Getenv("ACORN_NAME") + suffix
+// ResourceID returns an ID that can be used to uniquely identify resources built with the given prefix
+func ResourceID(prefix string) string {
+	id := os.Getenv("ACORN_EXTERNAL_ID")
+	id = strings.ReplaceAll(id, ".", "")
+
+	if len(id) > 40 {
+		return id[:40]
+	} else {
+		return id
+	}
 }
 
 // GetPrivateSubnetGroup returns a new subnet group for the given elasticache stack
