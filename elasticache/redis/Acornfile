@@ -1,0 +1,115 @@
+name:        "AWS Elasticache Redis"
+description: "Amazon's Redis compatible Elasticache cluster"
+info:        "\(localData.info)"
+readme: 		 "./README.md"
+
+localData: info: """
+		## How To Use ([examples](https://github.com/acorn-io/aws/tree/main/elasticache/redis/examples))
+
+		1) Link your app with this acorn via an `external` service named "redis".
+
+		```typescript
+				 services: redis: {
+						external: "@{acorn.name}"
+				 }
+				 containers: app: {
+						build: context: "./"
+						ports: publish: ["8080/http"]
+						env: {
+								REDIS_URL: "redis://:@{@{service.}redis.secrets.admin.token}@{@{service.}redis.address}:@{@{service.}redis.port}/0"
+						 }
+				 }
+		```
+		"""
+
+args: {
+	// Name assigned to the cluster during creation. Default value is "RedisCluster".
+	clusterName: "Redis"
+
+	// Key value pairs to apply to all resources.
+	tags: {}
+
+	// Deletion protection. Must be set to false in order to delete the Redis clutser. Default value is false.
+	deletionProtection: false
+
+	// The cache node type used in the elasticache cluster. See https://aws.amazon.com/elasticache/pricing/ for a list of options. Default value is "cache.t4g.micro".
+	nodeType: "cache.t4g.micro"
+
+	// The number of cache nodes used in the elasticache cluster. Default value is 1. Automatic failover is enabled for values >1. Cluster mode is disabled so its a single primary with read replicas.
+	numNodes: 1
+}
+
+services: admin: {
+	name:    "Redis Admin"
+	default: true
+	generated: job: "apply"
+}
+
+jobs: apply: {
+	build: {
+		context:    "../"
+		dockerfile: "../redis.Dockerfile"
+		additionalContexts: common: "../../libs"
+	}
+	//                         entrypoint: "sleep"
+	//                         command: ["7200"]
+	files: "/app/config.json": std.toJSON(args)
+	env: {
+		CDK_DEFAULT_ACCOUNT:          "@{secrets.aws-context.account-id}"
+		CDK_DEFAULT_REGION:           "@{secrets.aws-context.aws-region}"
+		VPC_ID:                       "@{secrets.aws-context.vpc-id}"
+		ACORN_ACCOUNT:                "@{acorn.account}"
+		ACORN_NAME:                   "@{acorn.name}"
+		ACORN_PROJECT:                "@{acorn.project}"
+		ACORN_EXTERNAL_ID:            "@{acorn.externalID}"
+		CDK_RUNNER_DELETE_PROTECTION: "\(args.deletionProtection)"
+	}
+	events: ["create", "update", "delete"]
+	permissions: rules: [{
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"cloudformation:DescribeStacks",
+			"cloudformation:CreateChangeSet",
+			"cloudformation:DescribeStackEvents",
+			"cloudformation:DescribeStackResources",
+			"cloudformation:DescribeChangeSet",
+			"cloudformation:ExecuteChangeSet",
+			"cloudformation:PreviewStackUpdate",
+			"cloudformation:UpdateStack",
+			"cloudformation:GetTemplateSummary",
+			"cloudformation:DeleteStack",
+			"ec2:*",
+			"elasticache:*",
+			"secretsmanager:*",
+		]
+		resources: ["*"]
+	}, {
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"iam:CreateServiceLinkedRole",
+		]
+		resources: ["arn:aws:iam::*:role/aws-service-role/elasticache.amazonaws.com/AWSServiceRoleForElastiCache"]
+	}, {
+		apiGroup: "api.acorn.io"
+		verbs: [
+			"create",
+		]
+		resources: ["events"]
+	}]
+}
+
+secrets: admin: {
+	type: "generated"
+	params: job: "apply"
+}
+
+secrets: "aws-context": {
+	name:     "AWS Context"
+	external: "context://aws"
+	type:     "opaque"
+	data: {
+		"account-id": ""
+		"vpc-id":     ""
+		"aws-region": ""
+	}
+}

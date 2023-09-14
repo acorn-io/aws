@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/aws/aws-cdk-go/awscdk/v2"
+	"github.com/aws/aws-cdk-go/awscdk/v2/awsec2"
 	"github.com/aws/constructs-go/constructs/v10"
 	"github.com/aws/jsii-runtime-go"
 )
@@ -61,4 +62,23 @@ func NewAWSCDKStackProps() *awscdk.StackProps {
 			Region:  jsii.String(os.Getenv("CDK_DEFAULT_REGION")),
 		},
 	}
+}
+
+// GetAllowAllVPCSecurityGroup returns a security group that allows traffic to and from the vpc over the given port
+func GetAllowAllVPCSecurityGroup(scope constructs.Construct, name *string, description *string, vpc awsec2.IVpc, port int) awsec2.SecurityGroup {
+	sg := awsec2.NewSecurityGroup(scope, name, &awsec2.SecurityGroupProps{
+		Vpc:              vpc,
+		AllowAllOutbound: jsii.Bool(true),
+		Description:      description,
+	})
+
+	for _, i := range *vpc.PrivateSubnets() {
+		sg.AddIngressRule(awsec2.Peer_Ipv4(i.Ipv4CidrBlock()), awsec2.Port_Tcp(jsii.Number(port)), jsii.String("Allow from private subnets"), jsii.Bool(false))
+	}
+
+	for _, i := range *vpc.PublicSubnets() {
+		sg.AddIngressRule(awsec2.Peer_Ipv4(i.Ipv4CidrBlock()), awsec2.Port_Tcp(jsii.Number(port)), jsii.String("Allow from public subnets"), jsii.Bool(false))
+	}
+
+	return sg
 }

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+    <title>Acorn Echo App!</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico')}}">
+
+    <style>
+        .navbar-custom {
+            background-color: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
+        <div class="container-fluid">
+            <span class="navbar-brand mb-0 text-white h1">Echo App Live</span>
+        </div>
+    </nav>
+
+    <div class="row">
+        <div id="app" class="col-md-4 mx-auto">
+            <div>
+                <form method="post">
+                    <div class="form-group">
+                        <label for="echotext">Text to echo:</label><br>
+                        <div class="col-sm-12 d-flex justify-content-between">
+                            <input type="text" id="echotext" name="echotext" class="form-control" placeholder="Say Hi!">
+                            <input type="submit" class="btn btn-primary"><br>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            {%- if text != "" %}
+            <div class="col-sm-12">
+                <p>You Said: <span>{{text}}</span></p>
+            </div>
+            {%endif%}
+            <div>
+                <h3>History:</h3>
+                <ul class="list-group">
+                    {%- for id, message in messages.items() | natural_sort() %}
+                    <li class="list-group-item"><span>{{id}}: </span><span></span>{{message}}</li>
+                    {%- endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
+        crossorigin="anonymous"></script>
+</body>
+
+</html>
