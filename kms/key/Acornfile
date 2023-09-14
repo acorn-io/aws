@@ -126,9 +126,6 @@ secrets: "aws-context": {
 }
 
 localData: info: """
-Deleting this acorn will not delete the KMS key.
-It will be left behind in AWS and must be scheduled for deletion manually.
-
 Key ARN: @{services.key.data.arn}
 Key Alias: \(args.keyAlias)
 Key Description: \(args.description)
