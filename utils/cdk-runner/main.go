@@ -11,6 +11,7 @@ import (
 	"github.com/acorn-io/aws/utils/cdk-runner/pkg/acorn"
 	"github.com/acorn-io/aws/utils/cdk-runner/pkg/aws/cloudformation"
 	"github.com/acorn-io/aws/utils/cdk-runner/pkg/cdk"
+	"github.com/acorn-io/aws/utils/cdk-runner/pkg/utils"
 	_ "github.com/acorn-io/baaah/pkg/logrus"
 	"github.com/sirupsen/logrus"
 )
@@ -119,8 +120,7 @@ func main() {
 
 	if event == "delete" {
 		if err := deleteStack(stackName); err != nil {
-			os.WriteFile("/dev/termination-log", []byte(err.Error()), 0644)
-			logrus.Fatal(err)
+			logrus.Fatal(utils.WriteToTermLogAndError([]byte(err.Error()), err))
 		}
 	}
 }

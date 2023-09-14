@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/acorn-io/aws/utils/cdk-runner/pkg/utils"
 )
 
 func GenerateTemplateFile(outputFile string) error {
@@ -20,8 +22,8 @@ func GenerateTemplateFile(outputFile string) error {
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if err != nil {
-		os.WriteFile("/dev/termination-log", []byte(fmt.Sprintf("error running cdk synth: %v, %v", err, stderr.String())), 0644)
-		return fmt.Errorf("error running cdk synth: %v, %v", err, stderr.String())
+		message := []byte(fmt.Sprintf("error running cdk synth: %v, %v", err, stderr.String()))
+		return utils.WriteToTermLogAndError(message, err)
 	}
 
 	return writeCFNTemplate(out.String(), outputFile)
