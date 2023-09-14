@@ -4,7 +4,7 @@ Run an Elasticache Redis cluster as an Acorn with a single click or command.
 
 ## Quirks
 
-TLS is enabled for connections to the cluster. Some clients don't 
+TLS is enabled for connections to the cluster. Some clients will fail to connect unless you specifically enable ssl/tls in their settings.
 
 ## Args
 
