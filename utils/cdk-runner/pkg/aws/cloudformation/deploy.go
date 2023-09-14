@@ -1,11 +1,13 @@
 package cloudformation
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/acorn-io/aws/utils/cdk-runner/pkg/hooks"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
@@ -48,12 +50,25 @@ func DeployStack(c *Client, stackName, template string) error {
 		return err
 	}
 
+	currentTemplate, err := stack.GetCurrentTemplate(c)
+	if err != nil {
+		return err
+	}
+
+	if err := os.WriteFile("/app/current-template.yaml", []byte(currentTemplate), 0644); err != nil {
+		return err
+	}
+
 	changeSetOutput, err := createAndWaitForChangeset(c, stack, template)
 	if err != nil || changeSetOutput == nil {
 		return err
 	}
 
 	if err := outputChangesInChangeSet(c, *changeSetOutput.Id, stack); err != nil {
+		return err
+	}
+
+	if err := hooks.PreChangeSetApplyHook(hooks.PreChangeSetApplyHookExecutable); err != nil {
 		return err
 	}
 
@@ -124,9 +139,20 @@ func outputChangesInChangeSet(c *Client, changeSetId string, stack *CfnStack) er
 		return err
 	}
 
+	bytes, err := json.Marshal(describeChangeSetOutput.Changes)
+	if err != nil {
+		return err
+	}
+
+	logrus.Info("Writing changeset to /app/change-set.json")
+	if err := os.WriteFile("/app/change-set.json", bytes, 0644); err != nil {
+		return err
+	}
+
 	for _, change := range describeChangeSetOutput.Changes {
 		logrus.Infof("  %s: %s", change.ResourceChange.Action, *change.ResourceChange.LogicalResourceId)
 	}
+
 	return nil
 }
 

@@ -28,15 +28,16 @@ var (
 
 type RDSStackProps struct {
 	awscdk.StackProps
+	AdminUser                 string            `json:"adminUsername"`
 	DatabaseName              string            `json:"dbName"`
+	DeletionProtection        bool              `json:"deletionProtection"`
+	EnablePerformanceInsights bool              `json:"enablePerformanceInsights"`
 	InstanceClass             string            `json:"instanceClass"`
 	InstanceSize              string            `json:"instanceSize"`
-	AdminUser                 string            `json:"adminUsername"`
-	Tags                      map[string]string `json:"tags"`
-	DeletionProtection        bool              `json:"deletionProtection"`
 	Parameters                map[string]string `json:"parameters"`
+	RestoreSnapshotArn        string            `json:"restoreSnapshotArn"`
 	SkipSnapShotOnDelete      bool              `json:"skipSnapshotOnDelete"`
-	EnablePerformanceInsights bool              `json:"enablePerformanceInsights"`
+	Tags                      map[string]string `json:"tags"`
 	VpcID                     string
 	// Scaling units for serverless v1
 	AuroraCapacityUnitsMin   int `json:"auroraCapacityUnitsMin"`

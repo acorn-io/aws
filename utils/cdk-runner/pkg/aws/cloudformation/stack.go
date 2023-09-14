@@ -2,16 +2,14 @@ package cloudformation
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/acorn-io/aws/utils/cdk-runner/pkg/utils"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsCfn "github.com/aws/aws-sdk-go-v2/service/cloudformation"
 	"github.com/aws/aws-sdk-go-v2/service/cloudformation/types"
-	"github.com/awslabs/goformation"
-	"github.com/awslabs/goformation/cloudformation"
 	"github.com/sirupsen/logrus"
 )
 
@@ -134,23 +132,19 @@ func (s *CfnStack) LogEvents(c *Client) {
 				startTime = *event.Timestamp
 			}
 		}
-		os.WriteFile("/dev/termination-log", []byte(termMessage.String()), 0644)
+		utils.WriteToTermLogAndError([]byte(termMessage.String()), nil)
 		time.Sleep(5 * time.Second)
 	}
 }
 
-func (s *CfnStack) GetCurrentTemplate(c *Client) (*cloudformation.Template, error) {
+func (s *CfnStack) GetCurrentTemplate(c *Client) ([]byte, error) {
 	current, err := c.Client.GetTemplate(c.Ctx, &awsCfn.GetTemplateInput{
 		StackName: &s.StackName,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return ParseYAMLCFN([]byte(*current.TemplateBody))
-}
-
-func ParseYAMLCFN(template []byte) (*cloudformation.Template, error) {
-	return goformation.ParseYAML(template)
+	return []byte(*current.TemplateBody), nil
 }
 
 func deletionProtectionEnabled(stack types.Stack) bool {

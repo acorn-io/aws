@@ -8,8 +8,9 @@ The Runner will:
 1. Prepare a cdk.context.json file for the CDK CLI to use and place it in the repo.
 1. Run the CDK CLI and output a `cfn.yaml` file.
 1. Depending on the Acorn event (create, update, delete) it will either create or delete the stack.
+1. If the event is create or update, it will create a change set and call /app/hooks/pre-change-set-apply if it exists.
 1. It will write the outputs of the stack to a file called `outputs.json` in the root of the project.
-1. It will execute `./scripts/service.sh` if it exists to render the services.
+1. It will execute `./scripts/service.sh` if it exists to render the Acorn services.
 
 ## Usage
 
@@ -114,7 +115,7 @@ secrets: "aws-context": {
 
 ## Needed Environment Variables
 
-- ACORN_EVENT - create, update, delete - This is the event being run and is set by Acorn on the job.
+- ACORN_EVENT - create, update, delete - This is the event being run and is set by Acorn on the job. This is set by Acorn runtime.
 - ACORN_EXTERNAL_ID - This is the external ID of the Acorn and is set by Acorn on the job.
 - ACORN_ACCOUNT - This is the account ID of the Acorn and is set by Acorn on the job.
 - ACORN_NAME - This is the name of the Acorn and is set by Acorn on the job.
@@ -125,3 +126,16 @@ secrets: "aws-context": {
 - VPC_ID:              VPC ID, required.
 
 - CDK_RUNNER_DELETE_PROTECTION - Optional, a boolean value that will tag the stack with delete protection enabled. This will be checked when deleting the stack and will not attempt to do so unless it is cleared. To clear it, the Acorn must be updated to disable the deletion protection.
+
+## Hooks
+
+There is a pre-change-set-apply hook that can be used to run scripts before the change set is applied. This is useful for some advanced error processing. The hook is called with the following positional arguments:
+The script must be executable and be in the following location:
+
+`/app/hooks/pre-change-set-apply`
+
+The hook is called with the following positional arguments:
+
+1. path to the current applied cloudformation stack template file. (YAML file)
+1. path to the new cloudformation stack template file. (YAML file)
+1. path to change set json file. (JSON file)
