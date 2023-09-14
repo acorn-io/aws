@@ -1,6 +1,7 @@
 name:        "AWS Elasticache Redis"
 description: "Amazon's Redis compatible Elasticache cluster"
 info:        "\(localData.info)"
+readme: 		 "./README"
 
 localData: info: """
 		## How To Use ([examples](https://github.com/acorn-io/aws/tree/main/elasticache/redis/examples))
