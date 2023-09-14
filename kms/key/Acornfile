@@ -1,0 +1,135 @@
+name:        "AWS KMS Key"
+description: "AWS Key Management Service (KMS) Key"
+info:        localData.info
+
+args: {
+	// Name of the Key to create. The default is auto-generated.
+	keyName: ""
+	// The ARN of the principal that will be allowed to manage the key as an admin. Optional.
+	adminArn: ""
+	// Extra tags to place on the created Key. Optional.
+	tags: {}
+	// Alias for the Key. Optional.
+	keyAlias: ""
+	// Description for the Key. Optional.
+	description: "Acorn created KMS Key"
+	// Whether to enable the Key to be used. Default true.
+	enabled: true
+	// Whether to enable automatic rotation of the Key. Default false.
+	enableKeyRotation: false
+	// Type of Key to create. Options are "SYMMETRIC_DEFAULT", "RSA_2048", "RSA_3072", "RSA_4096", "ECC_NIST_P256", "ECC_NIST_P384", "ECC_NIST_P521", "ECC_SECG_P256K1", "HMAC_224", "HMAC_256", "HMAC_384", and "HMAC_512". Default is "SYMMETRIC_DEFAULT".
+	keySpec: "SYMMETRIC_DEFAULT"
+	// The usage for the Key. Options are "ENCRYPT_DECRYPT", "SIGN_VERIFY", and "GENERATE_VERIFY_HMAC". Each keySpec is only compatible with certain keyUsages - see README for more info. Default is "ENCRYPT_DECRYPT".
+	keyUsage: "ENCRYPT_DECRYPT"
+	// The time (in days) that must pass after key deletion is requested before the key is deleted. Default is 30. Minimum is 7. Maximum is 30.
+	pendingWindowDays: 30
+	// AWS IAM policy to attach to the Key. Optional.
+	keyPolicy: {}
+}
+
+services: key: {
+	name: "AWS KMS Key"
+	generated: job: "apply"
+	consumer: permissions: rules: [{
+		apiGroups: ["aws.acorn.io"]
+		verbs: [
+			"kms:Decrypt",
+			"kms:DescribeKey",
+			"kms:Encrypt",
+			"kms:GenerateDataKey",
+			"kms:GenerateDataKeyPair",
+			"kms:GenerateDataKeyPairWithoutPlaintext",
+			"kms:GenerateMac",
+			"kms:GenerateRandom",
+			"kms:GetKeyPolicy",
+			"kms:GetKeyRotationStatus",
+			"kms:GetPublicKey",
+			"kms:ListAliases",
+			"kms:ListGrants",
+			"kms:ListKeyPolicies",
+			"kms:ListResourceTags",
+			"kms:ListRetirableGrants",
+			"kms:ReEncryptFrom",
+			"kms:ReEncryptTo",
+			"kms:Sign",
+			"kms:Verify",
+			"kms:VerifyMac",
+		]
+		resources: ["*"]
+	}]
+}
+
+jobs: apply: {
+	build: {
+		context: "."
+		additionalContexts: {
+			common: "../../libs"
+			utils:  "../../utils"
+		}
+	}
+	files: "/app/config.json": std.toJSON(args)
+	env: {
+		CDK_DEFAULT_ACCOUNT: "@{secrets.aws-context.account-id}"
+		CDK_DEFAULT_REGION:  "@{secrets.aws-context.aws-region}"
+		VPC_ID:              "@{secrets.aws-context.vpc-id}"
+		ACORN_ACCOUNT:       "@{acorn.account}"
+		ACORN_NAME:          "@{acorn.name}"
+		ACORN_PROJECT:       "@{acorn.project}"
+		ACORN_EXTERNAL_ID:   "@{acorn.externalId}"
+	}
+	events: ["create", "update", "delete"]
+	permissions: rules: [{
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"cloudformation:DescribeStacks",
+			"cloudformation:CreateChangeSet",
+			"cloudformation:DescribeChangeSet",
+			"cloudformation:DescribeStackEvents",
+			"cloudformation:DescribeStackResources",
+			"cloudformation:ExecuteChangeSet",
+			"cloudformation:PreviewStackUpdate",
+			"cloudformation:UpdateStack",
+			"cloudformation:GetTemplateSummary",
+			"cloudformation:DeleteStack",
+			"kms:*",
+		]
+		resources: ["*"]
+	}, {
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"ec2:DescribeAvailabilityZones",
+			"ec2:DescribeVpcs",
+			"ec2:DescribeSubnets",
+			"ec2:DescribeRouteTables",
+		]
+		resources: ["*"]
+	}, {
+		apiGroup: "api.acorn.io"
+		verbs: [
+			"create",
+		]
+		resources: ["events"]
+	}]
+}
+
+secrets: "aws-context": {
+	name:     "AWS Context"
+	external: "context://aws"
+	type:     "opaque"
+	data: {
+		"account-id": ""
+		"vpc-id":     ""
+		"aws-region": ""
+	}
+}
+
+localData: info: """
+Deleting this acorn will not delete the KMS key.
+It will be left behind in AWS and must be scheduled for deletion manually.
+
+Key ARN: @{services.key.data.arn}
+Key Alias: \(args.keyAlias)
+Key Description: \(args.description)
+Key Spec: \(args.keySpec)
+Key Usage: \(args.keyUsage)
+"""
