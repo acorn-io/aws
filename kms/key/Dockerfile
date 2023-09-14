@@ -16,7 +16,6 @@ RUN npm install -g aws-cdk
 WORKDIR /app
 COPY ./cdk.json ./
 COPY ./scripts ./scripts
-COPY --from=utils ./scripts/ ./scripts/
 COPY --from=cdk-runner /cdk-runner .
 COPY --from=build /src/kms/key/key .
 CMD [ "/app/cdk-runner" ]

@@ -26,6 +26,7 @@ type KMSKeyStackProps struct {
 	KeyUsage          string                 `json:"keyUsage"`
 	PendingWindowDays int                    `json:"pendingWindowDays"`
 	KeyPolicy         map[string]interface{} `json:"keyPolicy"`
+	RemovalPolicy     string                 `json:"removalPolicy"`
 }
 
 // Source: https://pkg.go.dev/github.com/aws/aws-cdk-go/awscdk/v2/awskms@v2.96.0#KeySpec
@@ -60,6 +61,9 @@ func (ksp *KMSKeyStackProps) SetDefaults() {
 	if ksp.Description == "" {
 		ksp.Description = "Acorn created KMS Key"
 	}
+	if ksp.RemovalPolicy == "" {
+		ksp.RemovalPolicy = "DESTROY"
+	}
 }
 
 func (ksp *KMSKeyStackProps) ValidateProps() error {
@@ -74,6 +78,9 @@ func (ksp *KMSKeyStackProps) ValidateProps() error {
 	}
 	if ksp.PendingWindowDays < 7 || ksp.PendingWindowDays > 30 {
 		errs = append(errs, fmt.Errorf("pendingWindowDays must be between 7 and 30 (inclusive)"))
+	}
+	if ksp.RemovalPolicy != "DESTROY" && ksp.RemovalPolicy != "RETAIN" {
+		errs = append(errs, fmt.Errorf("removalPolicy must be either DESTROY or RETAIN"))
 	}
 	return errors.Join(errs...)
 }

@@ -32,7 +32,7 @@ func newKMSKeyStack(scope constructs.Construct, id string, props *props.KMSKeySt
 
 		// Intentionally withhold the ability to configure the removal policy to avoid accidental key deletion.
 		// The RETAIN policy means that the key will be orphaned and left behind if the CloudFormation stack is deleted.
-		RemovalPolicy: awscdk.RemovalPolicy_RETAIN,
+		RemovalPolicy: awscdk.RemovalPolicy(props.RemovalPolicy),
 	}
 
 	// Set optional properties

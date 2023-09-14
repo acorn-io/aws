@@ -1,11 +1,12 @@
 name:        "AWS KMS Key"
 description: "AWS Key Management Service (KMS) Key"
 info:        localData.info
+readme:      "./README.md"
 
 args: {
 	// Name of the Key to create. The default is auto-generated.
 	keyName: ""
-	// The ARN of the principal that will be allowed to manage the key as an admin. Optional.
+	// The ARN of the principal that will be allowed to manage the key as an admin. Optional. You can specify AWS accounts, IAM users, Federated SAML users, IAM roles, and specific assumed-role sessions.
 	adminArn: ""
 	// Extra tags to place on the created Key. Optional.
 	tags: {}
@@ -25,6 +26,8 @@ args: {
 	pendingWindowDays: 30
 	// AWS IAM policy to attach to the Key. Optional.
 	keyPolicy: {}
+	// Removal policy for the key. Valid options are "DESTROY" (key will be scheduled for deletion when this acorn is deleted) and "RETAIN" (key will remain in AWS even after this acorn is deleted). Default is "DESTROY".
+	removalPolicy: "DESTROY"
 }
 
 services: key: {
@@ -64,7 +67,6 @@ jobs: apply: {
 		context: "."
 		additionalContexts: {
 			common: "../../libs"
-			utils:  "../../utils"
 		}
 	}
 	files: "/app/config.json": std.toJSON(args)
@@ -132,4 +134,16 @@ Key Alias: \(args.keyAlias)
 Key Description: \(args.description)
 Key Spec: \(args.keySpec)
 Key Usage: \(args.keyUsage)
+
+Example usage:
+
+```typescript
+services: kmskey: external: "@{acorn.name}"
+
+containers: app: {
+	build: context: "./"
+	consumes: ["kmskey"]
+	env: KEY_ARN: "@{@{service.}kmskey.data.arn}"
+}
+```
 """
