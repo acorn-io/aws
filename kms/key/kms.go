@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func newKMSKeyStack(scope constructs.Construct, id string, props *props.KMSKeyStackProps) (awscdk.Stack, error) {
+func NewKMSKeyStack(scope constructs.Construct, id string, props *props.KMSKeyStackProps) (awscdk.Stack, error) {
 	var sprops awscdk.StackProps
 	if props != nil {
 		sprops = props.StackProps
@@ -76,7 +76,7 @@ func main() {
 
 	common.AppendScopedTags(app, stackProps.Tags)
 
-	if _, err := newKMSKeyStack(app, "kmsKeyStack", stackProps); err != nil {
+	if _, err := NewKMSKeyStack(app, "kmsKeyStack", stackProps); err != nil {
 		logrus.Fatal(err)
 	}
 
