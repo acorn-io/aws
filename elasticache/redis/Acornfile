@@ -39,6 +39,9 @@ args: {
 
 	// The number of cache nodes used in the elasticache cluster. Default value is 1. Automatic failover is enabled for values >1. Cluster mode is disabled so its a single primary with read replicas.
 	numNodes: 1
+
+	// Do not take a final snapshot on delete or update and replace operations. Default value is false. If skip is enabled your data since last snapshot will be gone forever if deleted or replaced.
+	skipSnapshotOnDelete: false
 }
 
 services: admin: {

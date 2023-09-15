@@ -14,10 +14,11 @@ import (
 
 type redisStackProps struct {
 	awscdk.StackProps
-	ClusterName string            `json:"clusterName" yaml:"clusterName"`
-	UserTags    map[string]string `json:"tags" yaml:"tags"`
-	NodeType    string            `json:"nodeType" yaml:"nodeType"`
-	NumNodes    int               `json:"numNodes" yaml:"numNodes"`
+	ClusterName          string            `json:"clusterName" yaml:"clusterName"`
+	UserTags             map[string]string `json:"tags" yaml:"tags"`
+	NodeType             string            `json:"nodeType" yaml:"nodeType"`
+	NumNodes             int               `json:"numNodes" yaml:"numNodes"`
+	SkipSnapshotOnDelete bool              `json:"skipSnapshotOnDelete" yaml:"skipSnapshotOnDelete"`
 }
 
 // NewRedisStack creates the new Redis stack
@@ -77,6 +78,13 @@ func NewRedisStack(scope constructs.Construct, id string, props *redisStackProps
 	// indicate that the subnet group depends on the cluster
 	// this prevents deletion errors caused by attempted subnet group deletes while the cluster still exists
 	redisRG.AddDependency(subnetGroup)
+
+	if !props.SkipSnapshotOnDelete {
+		// indicate that the cluster should be backed up before deletion
+		redisRG.ApplyRemovalPolicy(awscdk.RemovalPolicy_SNAPSHOT, &awscdk.RemovalPolicyOptions{
+			ApplyToUpdateReplacePolicy: jsii.Bool(true),
+		})
+	}
 
 	// output the cluster details
 	awscdk.NewCfnOutput(stack, jsii.String("clustername"), &awscdk.CfnOutputProps{
