@@ -102,7 +102,7 @@ func main() {
 	}
 	stackProps.setDefaults()
 	if err := stackProps.validateProps(); err != nil {
-		logrus.Fatalf("invalid stack properties: %s", err)
+		logrus.Fatalf("invalid stack properties: %v", err)
 	}
 
 	common.AppendScopedTags(app, stackProps.Tags)
