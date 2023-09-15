@@ -23,7 +23,7 @@ localData: info: """
 		"""
 
 args: {
-	// Name assigned to the cluster during creation. Default value is "RedisCluster".
+	// Name assigned to the cluster during creation alongside a unique ID. Default value is "Redis".
 	clusterName: "Redis"
 
 	// Key value pairs to apply to all resources.

@@ -36,10 +36,10 @@ func NewRedisStack(scope constructs.Construct, id string, props *redisStackProps
 	})
 
 	// get the subnet group
-	subnetGroup := elasticache.GetPrivateSubnetGroup(stack, jsii.String(props.ClusterName+"SubnetGroup"), vpc)
+	subnetGroup := elasticache.GetPrivateSubnetGroup(stack, elasticache.ResourceID(props.ClusterName, "Sng"), vpc)
 
 	// get the security group
-	sg := common.GetAllowAllVPCSecurityGroup(stack, jsii.String(props.ClusterName+"SecurityGroup"), jsii.String("Acorn generated Elasticache security group"), vpc, 6379)
+	sg := common.GetAllowAllVPCSecurityGroup(stack, elasticache.ResourceID(props.ClusterName, "Scg"), jsii.String("Acorn generated Elasticache security group"), vpc, 6379)
 
 	vpcSecurityGroupIDs := make([]*string, 0)
 	vpcSecurityGroupIDs = append(vpcSecurityGroupIDs, sg.SecurityGroupId())
@@ -58,7 +58,7 @@ func NewRedisStack(scope constructs.Construct, id string, props *redisStackProps
 	// it might seem like creating a replication group is not the same as creating a cluster
 	// but actually it creates the cluster and the replication group in one go
 	redisRG := awselasticache.NewCfnReplicationGroup(stack, jsii.String(props.ClusterName), &awselasticache.CfnReplicationGroupProps{
-		ReplicationGroupId:          jsii.String(elasticache.ResourceID("Rg")),
+		ReplicationGroupId:          elasticache.ResourceID(props.ClusterName, ""),
 		ReplicationGroupDescription: jsii.String("Acorn created Redis replication group"),
 		Engine:                      jsii.String("redis"),
 		CacheNodeType:               jsii.String(props.NodeType),
