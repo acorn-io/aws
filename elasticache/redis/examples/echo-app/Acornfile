@@ -1,22 +1,16 @@
 services: redis: build: {
-	context: "../../"
+	context:   "../../"
 	acornfile: "../../Acornfile"
 }
 
-containers: {
-    app: {
-        build: {
-            context: "."
-        }
-        ports: publish: ["5000/http"]
-        if args.dev {
-            dirs: {
-                "/src": "./"
-            }
-        }
-        env: {
-        		REDIS_HOST: "@{service.redis.address}"
-            REDIS_PASSWORD: "@{service.redis.secrets.admin.token}"
-        }
-    }
+containers: app: {
+	build: context: "."
+	ports: publish: ["5000/http"]
+	if args.dev {
+		dirs: "/src": "./"
+	}
+	env: {
+		REDIS_HOST:     "@{service.redis.address}"
+		REDIS_PASSWORD: "@{service.redis.secrets.admin.token}"
+	}
 }

@@ -1,28 +1,7 @@
 name:        "AWS Elasticache Redis"
 description: "Amazon's Redis compatible Elasticache cluster"
 info:        "\(localData.info)"
-readme: 		 "./README.md"
-
-localData: info: """
-		## How To Use ([examples](https://github.com/acorn-io/aws/tree/main/elasticache/redis/examples))
-
-		1) Link your app with this acorn via an `external` service named "redis".
-
-		```typescript
-				 services: redis: {
-						external: "@{acorn.name}"
-				 }
-				 containers: app: {
-						build: context: "./"
-						ports: publish: ["8080/http"]
-						env: {
-								REDIS_HOST: "@{@{service.}redis.address}"
-								REDIS_PORT: "@{@{service.}redis.data.port}"
-								REDIS_PASSWORD: "@{@{service.}redis.secrets.admin.token}"
-						 }
-				 }
-		```
-		"""
+readme:      "./README.md"
 
 args: {
 	// Name assigned to the cluster during creation alongside a unique ID. Default value is "Redis".
@@ -118,3 +97,24 @@ secrets: "aws-context": {
 		"aws-region": ""
 	}
 }
+
+localData: info: """
+	## How To Use ([examples](https://github.com/acorn-io/aws/tree/main/elasticache/redis/examples))
+
+	1) Link your app with this acorn via an `external` service named "redis".
+
+	```typescript
+			 services: redis: {
+					external: "@{acorn.name}"
+			 }
+			 containers: app: {
+					build: context: "./"
+					ports: publish: ["8080/http"]
+					env: {
+							REDIS_HOST: "@{@{service.}redis.address}"
+							REDIS_PORT: "@{@{service.}redis.data.port}"
+							REDIS_PASSWORD: "@{@{service.}redis.secrets.admin.token}"
+					 }
+			 }
+	```
+	"""
