@@ -15,7 +15,10 @@ import (
 func ResourceID(clusterName string, prefix string) *string {
 	externalIdHash := md5.Sum([]byte(os.Getenv("ACORN_EXTERNAL_ID")))
 	clusterName = clusterName + "-" + hex.EncodeToString(externalIdHash[:])
-	clusterName = prefix + "-" + clusterName
+
+	if prefix != "" {
+		clusterName = prefix + "-" + clusterName
+	}
 
 	if len(clusterName) > 40 {
 		clusterName = clusterName[:40]

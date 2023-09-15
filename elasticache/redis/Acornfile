@@ -16,7 +16,9 @@ localData: info: """
 						build: context: "./"
 						ports: publish: ["8080/http"]
 						env: {
-								REDIS_URL: "redis://:@{@{service.}redis.secrets.admin.token}@{@{service.}redis.address}:@{@{service.}redis.port}/0"
+								REDIS_HOST: "@{@{service.}redis.address}"
+								REDIS_PORT: "@{@{service.}redis.data.port}"
+								REDIS_PASSWORD: "@{@{service.}redis.secrets.admin.token}"
 						 }
 				 }
 		```
