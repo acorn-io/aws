@@ -71,6 +71,7 @@ func NewRedisStack(scope constructs.Construct, id string, props *redisStackProps
 		SecurityGroupIds:         &vpcSecurityGroupIDs,
 		AuthToken:                token.SecretValue().ToString(),
 		Port:                     jsii.Number(6379),
+		SnapshotRetentionLimit:   jsii.Number(1), // how many days to retain snapshots
 	})
 
 	// indicate that the subnet group depends on the cluster
