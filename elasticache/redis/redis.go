@@ -73,6 +73,10 @@ func NewRedisStack(scope constructs.Construct, id string, props *redisStackProps
 		Port:                     jsii.Number(6379),
 	})
 
+	// indicate that the subnet group depends on the cluster
+	// this prevents deletion errors caused by attempted subnet group deletes while the cluster still exists
+	redisRG.AddDependency(subnetGroup)
+
 	// output the cluster details
 	awscdk.NewCfnOutput(stack, jsii.String("clustername"), &awscdk.CfnOutputProps{
 		Value: jsii.String(props.ClusterName),
