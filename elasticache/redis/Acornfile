@@ -1,29 +1,10 @@
 name:        "AWS Elasticache Redis"
 description: "Amazon's Redis compatible Elasticache cluster"
 info:        "\(localData.info)"
-readme: 		 "./README.md"
-
-localData: info: """
-		## How To Use ([examples](https://github.com/acorn-io/aws/tree/main/elasticache/redis/examples))
-
-		1) Link your app with this acorn via an `external` service named "redis".
-
-		```typescript
-				 services: redis: {
-						external: "@{acorn.name}"
-				 }
-				 containers: app: {
-						build: context: "./"
-						ports: publish: ["8080/http"]
-						env: {
-								REDIS_URL: "redis://:@{@{service.}redis.secrets.admin.token}@{@{service.}redis.address}:@{@{service.}redis.port}/0"
-						 }
-				 }
-		```
-		"""
+readme:      "./README.md"
 
 args: {
-	// Name assigned to the cluster during creation. Default value is "RedisCluster".
+	// Name assigned to the cluster during creation alongside a unique ID. Default value is "Redis".
 	clusterName: "Redis"
 
 	// Key value pairs to apply to all resources.
@@ -37,6 +18,9 @@ args: {
 
 	// The number of cache nodes used in the elasticache cluster. Default value is 1. Automatic failover is enabled for values >1. Cluster mode is disabled so its a single primary with read replicas.
 	numNodes: 1
+
+	// Do not take a final snapshot on delete or update and replace operations. Default value is false. If skip is enabled your data since last snapshot will be gone forever if deleted or replaced.
+	skipSnapshotOnDelete: false
 }
 
 services: admin: {
@@ -113,3 +97,24 @@ secrets: "aws-context": {
 		"aws-region": ""
 	}
 }
+
+localData: info: """
+	## How To Use ([examples](https://github.com/acorn-io/aws/tree/main/elasticache/redis/examples))
+
+	1) Link your app with this acorn via an `external` service named "redis".
+
+	```typescript
+			 services: redis: {
+					external: "@{acorn.name}"
+			 }
+			 containers: app: {
+					build: context: "./"
+					ports: publish: ["8080/http"]
+					env: {
+							REDIS_HOST: "@{@{service.}redis.address}"
+							REDIS_PORT: "@{@{service.}redis.data.port}"
+							REDIS_PASSWORD: "@{@{service.}redis.secrets.admin.token}"
+					 }
+			 }
+	```
+	"""

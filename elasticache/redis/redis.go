@@ -14,10 +14,11 @@ import (
 
 type redisStackProps struct {
 	awscdk.StackProps
-	ClusterName string            `json:"clusterName" yaml:"clusterName"`
-	UserTags    map[string]string `json:"tags" yaml:"tags"`
-	NodeType    string            `json:"nodeType" yaml:"nodeType"`
-	NumNodes    int               `json:"numNodes" yaml:"numNodes"`
+	ClusterName          string            `json:"clusterName" yaml:"clusterName"`
+	UserTags             map[string]string `json:"tags" yaml:"tags"`
+	NodeType             string            `json:"nodeType" yaml:"nodeType"`
+	NumNodes             int               `json:"numNodes" yaml:"numNodes"`
+	SkipSnapshotOnDelete bool              `json:"skipSnapshotOnDelete" yaml:"skipSnapshotOnDelete"`
 }
 
 // NewRedisStack creates the new Redis stack
@@ -36,10 +37,10 @@ func NewRedisStack(scope constructs.Construct, id string, props *redisStackProps
 	})
 
 	// get the subnet group
-	subnetGroup := elasticache.GetPrivateSubnetGroup(stack, jsii.String(props.ClusterName+"SubnetGroup"), vpc)
+	subnetGroup := elasticache.GetPrivateSubnetGroup(stack, elasticache.ResourceID(props.ClusterName, "Sng"), vpc)
 
 	// get the security group
-	sg := common.GetAllowAllVPCSecurityGroup(stack, jsii.String(props.ClusterName+"SecurityGroup"), jsii.String("Acorn generated Elasticache security group"), vpc, 6379)
+	sg := common.GetAllowAllVPCSecurityGroup(stack, elasticache.ResourceID(props.ClusterName, "Scg"), jsii.String("Acorn generated Elasticache security group"), vpc, 6379)
 
 	vpcSecurityGroupIDs := make([]*string, 0)
 	vpcSecurityGroupIDs = append(vpcSecurityGroupIDs, sg.SecurityGroupId())
@@ -58,7 +59,7 @@ func NewRedisStack(scope constructs.Construct, id string, props *redisStackProps
 	// it might seem like creating a replication group is not the same as creating a cluster
 	// but actually it creates the cluster and the replication group in one go
 	redisRG := awselasticache.NewCfnReplicationGroup(stack, jsii.String(props.ClusterName), &awselasticache.CfnReplicationGroupProps{
-		ReplicationGroupId:          jsii.String(elasticache.ResourceID("Rg")),
+		ReplicationGroupId:          elasticache.ResourceID(props.ClusterName, ""),
 		ReplicationGroupDescription: jsii.String("Acorn created Redis replication group"),
 		Engine:                      jsii.String("redis"),
 		CacheNodeType:               jsii.String(props.NodeType),
@@ -71,7 +72,19 @@ func NewRedisStack(scope constructs.Construct, id string, props *redisStackProps
 		SecurityGroupIds:         &vpcSecurityGroupIDs,
 		AuthToken:                token.SecretValue().ToString(),
 		Port:                     jsii.Number(6379),
+		SnapshotRetentionLimit:   jsii.Number(1), // how many days to retain snapshots
 	})
+
+	// indicate that the subnet group depends on the cluster
+	// this prevents deletion errors caused by attempted subnet group deletes while the cluster still exists
+	redisRG.AddDependency(subnetGroup)
+
+	if !props.SkipSnapshotOnDelete {
+		// indicate that the cluster should be backed up before deletion
+		redisRG.ApplyRemovalPolicy(awscdk.RemovalPolicy_SNAPSHOT, &awscdk.RemovalPolicyOptions{
+			ApplyToUpdateReplacePolicy: jsii.Bool(true),
+		})
+	}
 
 	// output the cluster details
 	awscdk.NewCfnOutput(stack, jsii.String("clustername"), &awscdk.CfnOutputProps{

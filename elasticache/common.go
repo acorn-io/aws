@@ -1,8 +1,9 @@
 package elasticache
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"os"
-	"strings"
 
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsec2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awselasticache"
@@ -11,15 +12,19 @@ import (
 )
 
 // ResourceID returns an ID that can be used to uniquely identify resources built with the given prefix
-func ResourceID(prefix string) string {
-	id := os.Getenv("ACORN_EXTERNAL_ID")
-	id = strings.ReplaceAll(id, ".", "")
+func ResourceID(clusterName string, prefix string) *string {
+	externalIdHash := md5.Sum([]byte(os.Getenv("ACORN_EXTERNAL_ID")))
+	clusterName = clusterName + "-" + hex.EncodeToString(externalIdHash[:])
 
-	if len(id) > 40 {
-		return id[:40]
-	} else {
-		return id
+	if prefix != "" {
+		clusterName = prefix + "-" + clusterName
 	}
+
+	if len(clusterName) > 40 {
+		clusterName = clusterName[:40]
+	}
+
+	return jsii.String(clusterName)
 }
 
 // GetPrivateSubnetGroup returns a new subnet group for the given elasticache stack
@@ -31,7 +36,7 @@ func GetPrivateSubnetGroup(scope constructs.Construct, name *string, vpc awsec2.
 	}
 
 	subnetGroup := awselasticache.NewCfnSubnetGroup(scope, name, &awselasticache.CfnSubnetGroupProps{
-		CacheSubnetGroupName: jsii.String(ResourceID("Sg")),
+		CacheSubnetGroupName: name,
 		Description:          jsii.String("Acorn created Elasticache subnet group."),
 		SubnetIds:            &privateSubnetIDs,
 	})
