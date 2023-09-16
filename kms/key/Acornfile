@@ -22,12 +22,10 @@ args: {
 	keySpec: "SYMMETRIC_DEFAULT"
 	// The usage for the Key. Options are "ENCRYPT_DECRYPT", "SIGN_VERIFY", and "GENERATE_VERIFY_HMAC". Each keySpec is only compatible with certain keyUsages - see README for more info. Default is "ENCRYPT_DECRYPT".
 	keyUsage: "ENCRYPT_DECRYPT"
-	// The time (in days) that must pass after key deletion is requested before the key is deleted. Default is 30. Minimum is 7. Maximum is 30.
-	pendingWindowDays: 30
+	// The time (in days) that must pass after key deletion is requested before the key is deleted. Default is 7. Minimum is 7. Maximum is 30.
+	pendingWindowDays: 7
 	// AWS IAM policy to attach to the Key. Optional.
 	keyPolicy: {}
-	// Removal policy for the key. Valid options are "DESTROY" (key will be scheduled for deletion when this acorn is deleted) and "RETAIN" (key will remain in AWS even after this acorn is deleted). Default is "DESTROY".
-	removalPolicy: "DESTROY"
 }
 
 services: key: {

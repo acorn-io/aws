@@ -30,9 +30,8 @@ func NewKMSKeyStack(scope constructs.Construct, id string, props *props.KMSKeySt
 		KeyUsage:          keyUsage,
 		PendingWindow:     awscdk.Duration_Days(jsii.Number(props.PendingWindowDays)),
 
-		// Intentionally withhold the ability to configure the removal policy to avoid accidental key deletion.
-		// The RETAIN policy means that the key will be orphaned and left behind if the CloudFormation stack is deleted.
-		RemovalPolicy: awscdk.RemovalPolicy(props.RemovalPolicy),
+		// Hardcode this to `DESTROY` in order to prevent the user from leaving behind a KMS key that they can't delete.
+		RemovalPolicy: awscdk.RemovalPolicy_DESTROY,
 	}
 
 	// Set optional properties
