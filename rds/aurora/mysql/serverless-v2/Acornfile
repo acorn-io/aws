@@ -1,6 +1,7 @@
 name:        "AWS Aurora Serverless V2 Database"
 description: "AWS managed on-demand, autoscaling database"
 icon:        "../../../icon.png"
+readme:      "./README.md"
 info:        localData.info
 
 args: {

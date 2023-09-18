@@ -1,6 +1,7 @@
 name:        "AWS SQS Queue"
 description: "AWS SQS queue"
 icon:        "icon.png"
+readme:      "./README.md"
 info:        "\(localData.info)"
 
 args: {
