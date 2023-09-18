@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# On delete, do not get involved, the user might be trying to disable delete protection.
+if [ "${ACORN_EVENT}" = "delete" ]; then
+  echo "Skipping pre-apply hook on delete event."
+  exit 0
+fi
+
+write_error() {
+  echo "Error: $1" >&2
+  exit 1
+}
+
+help() {
+  echo "Usage: $0 <current_cfn_template> <proposed_cfn_template> <change_set>"
+  write_error "Usage: $0 <current_cfn_template> <proposed_cfn_template> <change_set>" >&2
+}
+
+snapshot_identifier_present() {
+  grep "SnapshotIdentifier" "${1}" > /dev/null
+  return $?
+}
+
+if [ "$#" -ne 3 ]; then
+  help
+fi
+
+current_cfn_template="${1}"
+proposed_cfn_template="${2}"
+change_set="${3}"
+
+
+snapshot_identifier_present "${current_cfn_template}"
+current_snapshot=$?
+snapshot_identifier_present "${proposed_cfn_template}"
+proposed_snapshot=$?
+
+if [ "${current_snapshot}" -eq 0 ] && [ "${proposed_snapshot}" -eq 1 ]; then
+  value=$(grep "SnapshotIdentifier" "${current_cfn_template}" | awk '{print $2}')
+  write_error "Cannot change from snapshot ${value} to no snapshot. You must delete Acorn ${ACORN_NAME} to reset."
+fi

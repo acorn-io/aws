@@ -5,14 +5,14 @@ COPY --from=common . ../libs/
 COPY . .
 RUN --mount=type=cache,target=/root/go/pkg \
     --mount=type=cache,target=/root/.cache/go-build \
-    go build -o rds ./aurora/mysql/${MAIN}
+    go build -o rds ./aurora/mysql/${MAIN} 
 
 FROM cgr.dev/chainguard/mariadb as user
 WORKDIR /app
 COPY ./scripts ./scripts
 ENTRYPOINT ["/app/scripts/create_and_grant_users.sh"]
 
-FROM ghcr.io/acorn-io/aws/utils/cdk-runner:v0.6.0 as cdk-runner
+FROM ghcr.io/acorn-io/aws/utils/cdk-runner:v0.7.1 as cdk-runner
 FROM cgr.dev/chainguard/wolfi-base
 RUN apk add -U --no-cache nodejs bash busybox jq curl zip && \
     apk del --no-cache wolfi-base apk-tools
@@ -23,6 +23,7 @@ RUN npm install -g aws-cdk
 WORKDIR /app
 COPY ./cdk.json ./
 COPY ./scripts ./scripts
+COPY ./hooks ./hooks
 COPY --from=cdk-runner /cdk-runner .
 COPY --from=build /src/rds/rds .
 

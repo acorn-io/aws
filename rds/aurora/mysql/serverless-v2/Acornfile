@@ -20,6 +20,8 @@ args: {
 	auroraCapacityUnitsV2Max: *8.0 | float | int
 	// RDS MySQL Database Parameters to apply to the cluster. Must be k/v string pairs(ex. max_connections: "1000").
 	parameters: {}
+	// Creates a new cluster from this snapshot or revert the existing database cluster to this snapshot. Once this has been set, should remain the same on subsequent runs. Default is "".
+	restoreFromSnapshotArn: ""
 	// Do not take a final snapshot on delete or update and replace operations. Default is false. If skip is enabled the DB will be gone forever if deleted or replaced.
 	skipSnapshotOnDelete: false
 	// Enable Performance Insights. Default is false.
