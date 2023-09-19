@@ -1,6 +1,7 @@
 name:        "AWS Aurora MySQL Cluster"
 description: "A managed MySQL cluster running in AWS."
 icon:        "../../../icon.png"
+readme:      "./README.md"
 info:        localData.info
 
 args: {
