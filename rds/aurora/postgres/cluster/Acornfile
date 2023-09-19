@@ -2,6 +2,7 @@ name:        "AWS Aurora PostgreSQL Cluster"
 description: "A managed PostgreSQL cluster running in AWS."
 icon:        "../../../icon.png"
 info:        localData.info
+readme:      "./README.md"
 
 args: {
 	// Name of the root/admin user. Default is postgres.

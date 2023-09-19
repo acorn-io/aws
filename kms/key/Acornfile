@@ -63,9 +63,7 @@ services: key: {
 jobs: apply: {
 	build: {
 		context: "."
-		additionalContexts: {
-			common: "../../libs"
-		}
+		additionalContexts: common: "../../libs"
 	}
 	files: "/app/config.json": std.toJSON(args)
 	env: {
