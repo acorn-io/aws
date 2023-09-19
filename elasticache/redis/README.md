@@ -38,7 +38,7 @@ TLS is enabled for connections to the cluster. Some clients will fail to connect
 |--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|-----------------|
 | clusterName        | Name to assign the Elasticache cluster during creation.                                                                                                                       | string | Redis           | 
 | tags               | Key value pairs to apply to all resources.                                                                                                                                    | object | {}              | 
-| deletionPrevention | Prevents the cluster from being deleted when set to true.                                                                                                                    | bool   | false           | 
+| deletionProtection | Prevents the cluster from being deleted when set to true.                                                                                                                     | bool   | false           | 
 | nodeType           | The cache node type used in the elasticache cluster. See [elasticache pricing](https://aws.amazon.com/elasticache/pricing/) for a list of options.                            | string | cache.t4g.micro | 
 | numNodes           | The number of cache nodes used in the elasticache cluster. Automatic failover is enabled for values >1. Cluster mode is disabled so it's a single primary with read replicas. | int    | 1               | 
 
