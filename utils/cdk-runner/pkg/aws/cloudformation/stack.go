@@ -141,9 +141,12 @@ func (s *CfnStack) GetCurrentTemplate(c *Client) ([]byte, error) {
 	current, err := c.Client.GetTemplate(c.Ctx, &awsCfn.GetTemplateInput{
 		StackName: &s.StackName,
 	})
-	if err != nil {
+	if err != nil && strings.Contains(err.Error(), "does not exist") {
+		return []byte{}, nil
+	} else if err != nil {
 		return nil, err
 	}
+
 	return []byte(*current.TemplateBody), nil
 }
 
