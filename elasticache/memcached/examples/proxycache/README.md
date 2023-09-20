@@ -1,6 +1,6 @@
 # Proxy Cache
 
-This is a simple example that shows how to use our Memcached service acorn. It proxies requests to a given URL and caches them using Memcached.
+This is a simple example that shows how to use our Memcached service acorn. It proxies requests to a given URL and caches the response using Memcached.
 
 ## Example usage
 
