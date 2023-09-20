@@ -28,3 +28,9 @@ jobs:
       - name: Build and Publish
         run: |
           acorn build --platform linux/amd64 --platform linux/arm64 --push -t ghcr.io/acorn-io/aws/${IMAGE}:${TAG} ./${IMAGE}
+      - name: Sign Image and Push Signature
+        uses: acorn-io/actions-sign@v1
+        with:
+          image: ghcr.io/acorn-io/aws/${IMAGE}:${TAG}
+          key: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          push: true
