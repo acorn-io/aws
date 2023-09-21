@@ -7,6 +7,7 @@ fi
 
 # Render Output
 CLUSTER_NAME=$(jq -r '.[] | select(.OutputKey=="clustername")|.OutputValue' outputs.json)
+CLUSTER_ARN=$(jq -r '.[] | select(.OutputKey=="clusterarn")|.OutputValue' outputs.json)
 ADDRESS=$(jq -r '.[] | select(.OutputKey=="address")|.OutputValue' outputs.json)
 PORT=$(jq -r '.[]| select(.OutputKey=="port")|.OutputValue' outputs.json)
 TOKEN_ARN=$(jq -r '.[]| select(.OutputKey=="tokenarn")|.OutputValue' outputs.json)
@@ -25,6 +26,7 @@ if [ -n "${TOKEN_ARN}" ]; then
   cat >> /run/secrets/output <<EOF
   data: {
     clusterName: "${CLUSTER_NAME}"
+    clusterArn: "${CLUSTER_ARN}"
     address: "${ADDRESS}"
     port: "${PORT}"
   }
@@ -41,6 +43,7 @@ else
   cat >> /run/secrets/output <<EOF
   data: {
     clusterName: "${CLUSTER_NAME}"
+    clusterArn: "${CLUSTER_ARN}"
     address: "${ADDRESS}"
     port: "${PORT}"
   }

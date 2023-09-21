@@ -21,7 +21,7 @@ containers: app: {
      env: {
               MEMCACHED_HOST: "@{service.memcached.address}"
               MEMCACHED_PORT: "@{service.memcached.data.port}"
-      }
+     }
 }
 ```
 
@@ -52,6 +52,7 @@ services: admin: {
   secrets: ["admin"]
   data: {
     clusterName: "${CLUSTER_NAME}"
+    clusterArn: "${CLUSTER_ARN}"
     address: "${ADDRESS}"
     port: "${PORT}"
   }

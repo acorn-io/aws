@@ -52,6 +52,7 @@ services: admin: {
   secrets: ["admin"]
   data: {
     clusterName: "${CLUSTER_NAME}"
+    clusterArn: "${CLUSTER_ARN}"
     address: "${ADDRESS}"
     port: "${PORT}"
   }
