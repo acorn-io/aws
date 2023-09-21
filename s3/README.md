@@ -7,23 +7,23 @@ Create a S3 bucket as an Acorn with a single click or command.
 From the CLI you can run the following command to create a S3 bucket.
 
 ```shell
-acorn run -n s3-bucket ghcr.io/acorn-io/s3:v0.#.#
+acorn run -n s3-bucket ghcr.io/acorn-io/aws/s3:v0.#.#
 ```
 
 From an Acornfile you can create the bucket using the acorn too.
 ```cue
 services: s3: {
-	image: "ghcr.io/acorn-io/s3:v0.#.#"
+	image: "ghcr.io/acorn-io/aws/s3:v0.#.#"
 }
 containers: app: {
-	build: context: "./"
-	ports: publish: ["8080/http"]
-	env: {
+    build: context: "./"
+    ports: publish: ["8080/http"]
+    env: {
         consumes: ["s3"]
         BUCKET_URL: "@{service.s3.data.url}"
         BUCKET_NAME: "@{service.s3.data.name}"
         BUCKET_ARN: "@{service.s3.data.arn}"
-	}
+    }
 }
 ```
 

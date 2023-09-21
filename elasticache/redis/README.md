@@ -7,13 +7,13 @@ Run an Elasticache Redis cluster as an Acorn with a single click or command.
 From the CLI you can run the following command to create an Elasticache Redis cluster.
 
 ```shell
-acorn run -n elasticache-redis-cluster ghcr.io/acorn-io/elasticache/redis:v0.#.#
+acorn run -n elasticache-redis-cluster ghcr.io/acorn-io/aws/elasticache/redis:v0.#.#
 ```
 
-From an Acornfile you can create the cluster by using the acorn too.
+From an Acornfile you can create the cluster by using the Redis acorn too.
 ```cue
 services: redis: {
-     image: "ghcr.io/acorn-io/elasticache/redis:v0.#.#"
+     image: "ghcr.io/acorn-io/aws/elasticache/redis:v0.#.#"
 }
 containers: app: {
      build: context: "./"
