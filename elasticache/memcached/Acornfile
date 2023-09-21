@@ -1,31 +1,31 @@
-name:        "AWS Elasticache Redis"
-description: "Amazon's Redis compatible Elasticache cluster"
+name:        "AWS Elasticache Memcached"
+description: "Amazon's Memcached compatible Elasticache cluster"
 info:        "\(localData.info)"
 readme:      "./README.md"
-icon:        "./redis.svg"
+icon:        "./memcached.svg"
 
 args: {
-	// Name assigned to the cluster during creation alongside a unique ID. Default value is "Redis".
-	clusterName: "Redis"
+	// Name assigned to the cluster during creation alongside a unique ID. Default value is "Memcached".
+	clusterName: "Memcached"
 
 	// Key value pairs to apply to all resources.
 	tags: {}
 
-	// Deletion protection. Must be set to false in order to delete the Redis clutser. Default value is false.
+	// Deletion protection. Must be set to false in order to delete the Memcached clutser. Default value is false.
 	deletionProtection: false
 
 	// The cache node type used in the elasticache cluster. See https://aws.amazon.com/elasticache/pricing/ for a list of options. Default value is "cache.t4g.micro".
 	nodeType: "cache.t4g.micro"
 
-	// The number of cache nodes used in the elasticache cluster. Default value is 1. Automatic failover is enabled for values >1. Cluster mode is disabled so its a single primary with read replicas.
+	// The number of cache nodes used in the elasticache cluster. Default value is 1.
 	numNodes: 1
 
-	// Do not take a final snapshot on delete or update and replace operations. Default value is false. If skip is enabled your data since last snapshot will be gone forever if deleted or replaced.
-	skipSnapshotOnDelete: false
+	// Enables TLS for connections to the cluster when true. Default value is false.
+	transitEncryption: false
 }
 
 services: admin: {
-	name:    "Redis Admin"
+	name:    "Memcached Admin"
 	default: true
 	generated: job: "apply"
 }
@@ -33,7 +33,7 @@ services: admin: {
 jobs: apply: {
 	build: {
 		context:    "../"
-		dockerfile: "../redis.Dockerfile"
+		dockerfile: "../memcached.Dockerfile"
 		additionalContexts: common: "../../libs"
 	}
 	files: "/app/config.json": std.toJSON(args)
@@ -82,11 +82,6 @@ jobs: apply: {
 	}]
 }
 
-secrets: admin: {
-	type: "generated"
-	params: job: "apply"
-}
-
 secrets: "aws-context": {
 	name:     "AWS Context"
 	external: "context://aws"
@@ -99,21 +94,20 @@ secrets: "aws-context": {
 }
 
 localData: info: """
-	## How To Use ([examples](https://github.com/acorn-io/aws/tree/main/elasticache/redis/examples))
+	## How To Use ([examples](https://github.com/acorn-io/aws/tree/main/elasticache/memcached/examples))
 
-	1) Link your app with this acorn via an `external` service named "redis".
+	1) Link your app with this acorn via an `external` service named "memcached".
 
 	```typescript
-			 services: redis: {
+			 services: memcached: {
 					external: "@{acorn.name}"
 			 }
 			 containers: app: {
 					build: context: "./"
-					ports: publish: ["5000/http"]
+					ports: publish: ["8080/http"]
 					env: {
-							REDIS_HOST: "@{@{service.}redis.address}"
-							REDIS_PORT: "@{@{service.}redis.data.port}"
-							REDIS_PASSWORD: "@{@{service.}redis.secrets.admin.token}"
+							MEMCACHED_HOST: "@{@{service.}memcached.address}"
+							MEMCACHED_PORT: "@{@{service.}memcached.data.port}"
 					 }
 			 }
 	```

@@ -1,11 +1,11 @@
 FROM cgr.dev/chainguard/go as build
 
-WORKDIR /src/redis
+WORKDIR /src/memcached
 COPY --from=common . ../libs/
 COPY . .
 RUN --mount=type=cache,target=/root/go/pkg \
     --mount=type=cache,target=/root/.cache/go-build \
-    go build -o elasticache ./redis
+    go build -o elasticache ./memcached
 
 FROM ghcr.io/acorn-io/aws/utils/cdk-runner:v0.7.1 as cdk-runner
 
@@ -20,5 +20,5 @@ WORKDIR /app
 COPY cdk.json ./
 COPY scripts ./scripts
 COPY --from=cdk-runner /cdk-runner .
-COPY --from=build /src/redis/elasticache .
+COPY --from=build /src/memcached/elasticache .
 CMD [ "/app/cdk-runner" ]
