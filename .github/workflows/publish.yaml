@@ -28,4 +28,7 @@ jobs:
       - name: Build and Publish with signature
         run: |
           acorn build --platform linux/amd64 --platform linux/arm64 -t ghcr.io/acorn-io/aws/${IMAGE}:${TAG} ./${IMAGE}
-          acorn push --sign --key="${{ secrets.SIGNATURE_PRIVATE_KEY }}" ghcr.io/acorn-io/aws/${IMAGE}:${TAG}
+          acorn push --sign --key="${{ secrets.SIG_PRIVATE_KEY }}" ghcr.io/acorn-io/aws/${IMAGE}:${TAG}
+        env:
+          ACORN_IMAGE_SIGN_PASSWORD: ${{ secrets.SIG_PRIVATE_KEY_PASSWORD }}
+```     
