@@ -89,7 +89,7 @@ func NewRedisStack(scope constructs.Construct, id string, props *redisStackProps
 		})
 	}
 
-	arn := fmt.Sprintf("arn:aws:elasticache:%s:%s:cluster:%s", *stack.Region(), *stack.Account(), *elasticache.ResourceID(props.ClusterName, ""))
+	arn := fmt.Sprintf("arn:aws:elasticache:%s:%s:replicationgroup:%s", *stack.Region(), *stack.Account(), *elasticache.ResourceID(props.ClusterName, ""))
 	arn = strings.ToLower(arn)
 
 	// output the cluster details
