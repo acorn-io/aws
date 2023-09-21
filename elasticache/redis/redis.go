@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/acorn-io/aws/elasticache"
 	"github.com/acorn-io/services/aws/libs/common"
 	"github.com/aws/aws-cdk-go/awscdk/v2"
@@ -86,9 +89,15 @@ func NewRedisStack(scope constructs.Construct, id string, props *redisStackProps
 		})
 	}
 
+	arn := fmt.Sprintf("arn:aws:elasticache:%s:%s:cluster:%s", *stack.Region(), *stack.Account(), *elasticache.ResourceID(props.ClusterName, ""))
+	arn = strings.ToLower(arn)
+
 	// output the cluster details
 	awscdk.NewCfnOutput(stack, jsii.String("clustername"), &awscdk.CfnOutputProps{
 		Value: jsii.String(props.ClusterName),
+	})
+	awscdk.NewCfnOutput(stack, jsii.String("clusterarn"), &awscdk.CfnOutputProps{
+		Value: jsii.String(arn),
 	})
 	awscdk.NewCfnOutput(stack, jsii.String("address"), &awscdk.CfnOutputProps{
 		Value: redisRG.AttrPrimaryEndPointAddress(),
