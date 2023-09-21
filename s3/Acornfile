@@ -2,6 +2,7 @@ name:        "AWS S3"
 description: "Amazon's Simple Storage Service"
 info:        "\(localData.info)"
 icon:        "amazon-s3.svg"
+readme:      "./README.md"
 
 args: {
 	// Name to assign bucket during creation

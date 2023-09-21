@@ -109,7 +109,7 @@ localData: info: """
 			 }
 			 containers: app: {
 					build: context: "./"
-					ports: publish: ["8080/http"]
+					ports: publish: ["5000/http"]
 					env: {
 							REDIS_HOST: "@{@{service.}redis.address}"
 							REDIS_PORT: "@{@{service.}redis.data.port}"
