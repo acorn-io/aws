@@ -11,14 +11,18 @@ ADDRESS=$(jq -r '.[] | select(.OutputKey=="address")|.OutputValue' outputs.json)
 PORT=$(jq -r '.[]| select(.OutputKey=="port")|.OutputValue' outputs.json)
 TOKEN_ARN=$(jq -r '.[]| select(.OutputKey=="tokenarn")|.OutputValue' outputs.json)
 
-TOKEN="$(aws --output text secretsmanager get-secret-value --secret-id "${TOKEN_ARN}" --query 'SecretString')"
-
-cat > /run/secrets/output<<EOF
+cat > /run/secrets/output <<EOF
 services: admin: {
   default: true
   address: "${ADDRESS}"
   ports: [${PORT}]
-  secrets: ["admin"]
+EOF
+
+# Only add secrets if TOKEN_ARN is not empty
+if [ -n "${TOKEN_ARN}" ]; then
+  TOKEN="$(aws --output text secretsmanager get-secret-value --secret-id "${TOKEN_ARN}" --query 'SecretString')"
+  echo '  secrets: ["admin"]' >> /run/secrets/output
+  cat >> /run/secrets/output <<EOF
   data: {
     clusterName: "${CLUSTER_NAME}"
     address: "${ADDRESS}"
@@ -33,3 +37,13 @@ secrets: "admin": {
   }
 }
 EOF
+else
+  cat >> /run/secrets/output <<EOF
+  data: {
+    clusterName: "${CLUSTER_NAME}"
+    address: "${ADDRESS}"
+    port: "${PORT}"
+  }
+}
+EOF
+fi

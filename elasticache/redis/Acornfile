@@ -2,6 +2,7 @@ name:        "AWS Elasticache Redis"
 description: "Amazon's Redis compatible Elasticache cluster"
 info:        "\(localData.info)"
 readme:      "./README.md"
+icon: "./redis.svg"
 
 args: {
 	// Name assigned to the cluster during creation alongside a unique ID. Default value is "Redis".
@@ -35,8 +36,6 @@ jobs: apply: {
 		dockerfile: "../redis.Dockerfile"
 		additionalContexts: common: "../../libs"
 	}
-	//                         entrypoint: "sleep"
-	//                         command: ["7200"]
 	files: "/app/config.json": std.toJSON(args)
 	env: {
 		CDK_DEFAULT_ACCOUNT:          "@{secrets.aws-context.account-id}"
@@ -62,6 +61,7 @@ jobs: apply: {
 			"cloudformation:UpdateStack",
 			"cloudformation:GetTemplateSummary",
 			"cloudformation:DeleteStack",
+			"cloudformation:GetTemplate",
 			"ec2:*",
 			"elasticache:*",
 			"secretsmanager:*",

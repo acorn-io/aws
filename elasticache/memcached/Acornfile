@@ -2,6 +2,7 @@ name:        "AWS Elasticache Memcached"
 description: "Amazon's Memcached compatible Elasticache cluster"
 info:        "\(localData.info)"
 readme:      "./README.md"
+icon: "./memcached.svg"
 
 args: {
 	// Name assigned to the cluster during creation alongside a unique ID. Default value is "Memcached".
@@ -10,7 +11,7 @@ args: {
 	// Key value pairs to apply to all resources.
 	tags: {}
 
-	// Deletion protection. Must be set to false in order to delete the Redis clutser. Default value is false.
+	// Deletion protection. Must be set to false in order to delete the Memcached clutser. Default value is false.
 	deletionProtection: false
 
 	// The cache node type used in the elasticache cluster. See https://aws.amazon.com/elasticache/pricing/ for a list of options. Default value is "cache.t4g.micro".
@@ -35,8 +36,6 @@ jobs: apply: {
 		dockerfile: "../memcached.Dockerfile"
 		additionalContexts: common: "../../libs"
 	}
-	//                         entrypoint: "sleep"
-	//                         command: ["7200"]
 	files: "/app/config.json": std.toJSON(args)
 	env: {
 		CDK_DEFAULT_ACCOUNT:          "@{secrets.aws-context.account-id}"
@@ -83,11 +82,6 @@ jobs: apply: {
 	}]
 }
 
-secrets: admin: {
-	type: "generated"
-	params: job: "apply"
-}
-
 secrets: "aws-context": {
 	name:     "AWS Context"
 	external: "context://aws"
@@ -112,9 +106,8 @@ localData: info: """
 					build: context: "./"
 					ports: publish: ["8080/http"]
 					env: {
-							REDIS_HOST: "@{@{service.}memcached.address}"
-							REDIS_PORT: "@{@{service.}memcached.data.port}"
-							REDIS_PASSWORD: "@{@{service.}memcached.secrets.admin.token}"
+							MEMCACHED_HOST: "@{@{service.}memcached.address}"
+							MEMCACHED_PORT: "@{@{service.}memcached.data.port}"
 					 }
 			 }
 	```
