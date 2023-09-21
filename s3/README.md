@@ -18,8 +18,8 @@ services: s3: {
 containers: app: {
     build: context: "./"
     ports: publish: ["8080/http"]
+    consumes: ["s3"]
     env: {
-        consumes: ["s3"]
         BUCKET_URL: "@{service.s3.data.url}"
         BUCKET_NAME: "@{service.s3.data.name}"
         BUCKET_ARN: "@{service.s3.data.arn}"
