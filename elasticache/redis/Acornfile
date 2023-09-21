@@ -2,7 +2,7 @@ name:        "AWS Elasticache Redis"
 description: "Amazon's Redis compatible Elasticache cluster"
 info:        "\(localData.info)"
 readme:      "./README.md"
-icon: "./redis.svg"
+icon:        "./redis.svg"
 
 args: {
 	// Name assigned to the cluster during creation alongside a unique ID. Default value is "Redis".

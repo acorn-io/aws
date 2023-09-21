@@ -2,7 +2,7 @@ name:        "AWS Elasticache Memcached"
 description: "Amazon's Memcached compatible Elasticache cluster"
 info:        "\(localData.info)"
 readme:      "./README.md"
-icon: "./memcached.svg"
+icon:        "./memcached.svg"
 
 args: {
 	// Name assigned to the cluster during creation alongside a unique ID. Default value is "Memcached".

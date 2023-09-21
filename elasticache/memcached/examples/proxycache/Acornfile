@@ -1,5 +1,5 @@
 services: memcached: build: {
-	context: "../../"
+	context:   "../../"
 	acornfile: "../../Acornfile"
 }
 
