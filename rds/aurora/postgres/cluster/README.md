@@ -10,7 +10,7 @@ From the CLI you can run the following command to create an Aurora PostgreSQL cl
 acorn run -n rds-postgresql-cluster ghcr.io/acorn-io/aws/rds/aurora/postgresql/cluster:v0.#.#
 ```
 
-From an Acornfile you can create the cluster by using the Acorn too
+From an Acornfile you can create the cluster by using the PostgreSQL acorn too
 ```cue
 services: pg: {
     image: "ghcr.io/acorn-io/aws/rds/aurora/postgresql/cluster:v0.#.#"

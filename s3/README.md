@@ -10,7 +10,7 @@ From the CLI you can run the following command to create a S3 bucket.
 acorn run -n s3-bucket ghcr.io/acorn-io/aws/s3:v0.#.#
 ```
 
-From an Acornfile you can create the bucket using the acorn too.
+From an Acornfile you can create the bucket using the S3 acorn too.
 ```cue
 services: s3: {
 	image: "ghcr.io/acorn-io/aws/s3:v0.#.#"
