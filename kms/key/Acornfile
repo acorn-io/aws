@@ -10,7 +10,7 @@ args: {
 	adminArn: ""
 	// Extra tags to place on the created Key. Optional.
 	tags: {}
-	// Alias for the Key. Optional.
+	// Alias for the Key. Optional. Default "@{acorn.name}-@{acorn.account}-@{acorn.project}"
 	keyAlias: ""
 	// Description for the Key. Optional.
 	description: "Acorn created KMS Key"
@@ -74,6 +74,7 @@ jobs: apply: {
 		ACORN_NAME:          "@{acorn.name}"
 		ACORN_PROJECT:       "@{acorn.project}"
 		ACORN_EXTERNAL_ID:   "@{acorn.externalId}"
+		DEFAULT_KEY_ALIAS:   "@{acorn.name}-@{acorn.account}-@{acorn.project}"
 	}
 	events: ["create", "update", "delete"]
 	permissions: rules: [{
