@@ -1,6 +1,9 @@
 package main
 
 import (
+	"os"
+	"strings"
+
 	"github.com/acorn-io/aws/kms/key/props"
 	"github.com/acorn-io/services/aws/libs/common"
 	"github.com/aws/aws-cdk-go/awscdk/v2"
@@ -37,6 +40,8 @@ func NewKMSKeyStack(scope constructs.Construct, id string, props *props.KMSKeySt
 	// Set optional properties
 	if len(props.KeyAlias) > 0 {
 		keyProps.Alias = jsii.String(props.KeyAlias)
+	} else {
+		keyProps.Alias = jsii.String(strings.ReplaceAll(os.Getenv("DEFAULT_KEY_ALIAS"), ".", "-"))
 	}
 	if len(props.Description) > 0 {
 		keyProps.Description = jsii.String(props.Description)
