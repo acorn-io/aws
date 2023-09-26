@@ -31,4 +31,4 @@ jobs:
           acorn push --sign --key="${{ secrets.SIG_PRIVATE_KEY }}" ghcr.io/acorn-io/aws/${IMAGE}:${TAG}
         env:
           ACORN_IMAGE_SIGN_PASSWORD: ${{ secrets.SIG_PRIVATE_KEY_PASSWORD }}
-```     
+
