@@ -25,6 +25,10 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Set image and tag
         run: ./scripts/setup_tags.sh
-      - name: Build and Publish
+      - name: Build and Publish with signature
         run: |
-          acorn build --platform linux/amd64 --platform linux/arm64 --push -t ghcr.io/acorn-io/aws/${IMAGE}:${TAG} ./${IMAGE}
+          acorn build --platform linux/amd64 --platform linux/arm64 -t ghcr.io/acorn-io/aws/${IMAGE}:${TAG} ./${IMAGE}
+          acorn push --sign --key="${{ secrets.SIG_PRIVATE_KEY }}" ghcr.io/acorn-io/aws/${IMAGE}:${TAG}
+        env:
+          ACORN_IMAGE_SIGN_PASSWORD: ${{ secrets.SIG_PRIVATE_KEY_PASSWORD }}
+
