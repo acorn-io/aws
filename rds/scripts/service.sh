@@ -14,8 +14,6 @@ services: rds: {
   address: "${ADDRESS}"
   ports: [${PORT}]
   data: {
-    address: "${ADDRESS}"
-    port: "${PORT}"
     dbName: "${DB_NAME}"
   }
 }

@@ -157,8 +157,8 @@ localData: info: """
 		ports: publish: ["8080/http"]
 	  env: {
 		  PGDATABASE: "@{@{service.}pg.data.dbName}"
-		  PGHOST: "@{@{service.}pg.data.address}"
-		  PGPORT: "@{@{service.}pg.data.port}"
+		  PGHOST: "@{@{service.}pg.address}"
+		  PGPORT: "@{@{service.}pg.ports.5432}"
 		  PGUSER: "@{@{service.}pg.secrets.admin.username}"
 		  PGPASSWORD: "@{@{service.}pg.secrets.admin.password}"
 		}
