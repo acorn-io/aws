@@ -1,0 +1,16 @@
+services: ddb: {
+	build: {
+		context: "../../"
+		acornfile: "../../Acornfile"
+	}
+}
+
+containers: plaintext: {
+	build: context: "./"
+	ports: publish: ["8080/http"]
+	consumes: ["ddb"]
+	env: {
+		TABLE_NAME: "@{services.ddb.data.name}"
+		TABLE_ARN:  "@{services.ddb.data.arn}"
+	}
+}
