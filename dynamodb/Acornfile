@@ -172,4 +172,21 @@ secrets: "aws-context": {
 
 localData: info: """
 	## How To Use ([examples](https://github.com/acorn-io/aws/tree/main/dynamodb/examples))
+
+	1) Link your app with this acorn via an `external` service named "ddb".
+
+	```typescript
+			 services: ddb: {
+					external: "@{acorn.name}"
+			 }
+			 containers: app: {
+					build: context: "./"
+					ports: publish: ["8080/http"]
+					consumes: ["ddb"]
+					env: {
+							TABLE_NAME: "@{@{service.}ddb.data.name}"
+							TABLE_ARN: "@{@{service.}ddb.data.arn}"
+					 }
+			 }
+	```
 	"""

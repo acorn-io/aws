@@ -11,12 +11,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/aws/jsii-runtime-go"
+	"github.com/sirupsen/logrus"
 )
 
 type Item struct {
-	ID    string `json:"id"`
-	Value string `json:"value"`
+	ID    string `json:"id" dynamodbav:"id"`
+	Value string `json:"value" dynamodbav:"value"`
+}
+
+type KeyItem struct {
+	ID string `json:"id" dynamodbav:"id"`
 }
 
 func main() {
@@ -28,39 +32,43 @@ func main() {
 	table := os.Getenv("TABLE_NAME")
 	ddb := dynamodb.NewFromConfig(cfg)
 
+	logrus.Infof("caching via DynamoDB table: %s", table)
+
 	http.HandleFunc("/get", func(response http.ResponseWriter, request *http.Request) {
 		key := request.URL.Query().Get("key")
 
-		imap, err := attributevalue.MarshalMap(Item{
+		imap, err := attributevalue.MarshalMap(KeyItem{
 			ID: key,
 		})
 		if err != nil {
-			log.Printf("failed to marshal map: %v", err)
+			logrus.WithError(err).Error("failed to marshal map")
 			response.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
+		logrus.Infof("imap = %v", imap)
+
 		result, err := ddb.GetItem(context.Background(), &dynamodb.GetItemInput{
-			TableName: jsii.String(table),
+			TableName: aws.String(table),
 			Key:       imap,
 		})
 		if err != nil {
-			log.Printf("failed to get item: %v", err)
+			logrus.WithError(err).Error("failed to get item")
 			response.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		item := Item{}
-		err = attributevalue.UnmarshalMap(result.Item, item)
+		err = attributevalue.UnmarshalMap(result.Item, &item)
 		if err != nil {
-			log.Printf("failed to unmarshal map: %v", err)
+			logrus.WithError(err).Error("failed to unmarshal map")
 			response.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		_, err = response.Write([]byte(item.Value))
 		if err != nil {
-			log.Printf("failed to write response: %v", err)
+			logrus.WithError(err).Error("failed to write response")
 		}
 	})
 
@@ -69,7 +77,7 @@ func main() {
 
 		body, err := io.ReadAll(request.Body)
 		if err != nil {
-			log.Printf("failed to read request body: %v", err)
+			logrus.WithError(err).Error("failed to read request body")
 			response.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -79,7 +87,7 @@ func main() {
 			Value: string(body),
 		})
 		if err != nil {
-			log.Printf("failed to marshal map: %v", err)
+			logrus.WithError(err).Error("failed to marshal map")
 			response.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -89,11 +97,11 @@ func main() {
 			TableName: aws.String(table),
 		})
 		if err != nil {
-			log.Printf("failed to put item: %v", err)
+			logrus.WithError(err).Error("failed to put item")
 			response.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 	})
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	logrus.WithError(http.ListenAndServe(":8080", nil)).Fatal("failed to run server")
 }
