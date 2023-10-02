@@ -20,7 +20,7 @@ type DynamoStackProps struct {
 	SkipSnapshotOnDelete bool              `json:"skipSnapshotOnDelete" yaml:"skipSnapshotOnDelete"`
 }
 
-func mustGetAttributeType(attrType string) awsdynamodb.AttributeType {
+func mustGetAttributeType(attrType, arg string) awsdynamodb.AttributeType {
 	switch attrType {
 	case "STRING":
 		return awsdynamodb.AttributeType_STRING
@@ -30,7 +30,7 @@ func mustGetAttributeType(attrType string) awsdynamodb.AttributeType {
 		return awsdynamodb.AttributeType_NUMBER
 	}
 
-	logrus.Fatalf("unmatched attribute type: %s. Valid values are STRING, BINARY, and NUMBER.", attrType)
+	logrus.WithField("arg", arg).Fatalf("unmatched attribute type: %s. Valid values are STRING, BINARY, and NUMBER.", attrType)
 	return "" // this won't be hit given that the fatal log causes a panic
 }
 
@@ -45,7 +45,7 @@ func NewDynamoStack(scope constructs.Construct, id string, props *DynamoStackPro
 	tableProps := &awsdynamodb.TablePropsV2{
 		PartitionKey: &awsdynamodb.Attribute{
 			Name: jsii.String(props.PartitionKey),
-			Type: mustGetAttributeType(props.PartitionKeyType),
+			Type: mustGetAttributeType(props.PartitionKeyType, "partitionKeyType"),
 		},
 	}
 
@@ -62,7 +62,7 @@ func NewDynamoStack(scope constructs.Construct, id string, props *DynamoStackPro
 	if len(props.SortKey) > 0 && len(props.SortKeyType) > 0 {
 		tableProps.SortKey = &awsdynamodb.Attribute{
 			Name: jsii.String(props.SortKey),
-			Type: mustGetAttributeType(props.SortKeyType),
+			Type: mustGetAttributeType(props.SortKeyType, "sortKeyType"),
 		}
 	}
 
