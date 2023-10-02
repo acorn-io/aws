@@ -70,7 +70,7 @@ services: {
 	}
 
 	readwrite: {
-		name: "DynamoDB Reader Writer"
+		name:    "DynamoDB Reader Writer"
 		default: true
 		generated: job: "apply"
 		consumer: permissions: rules: [{
@@ -84,7 +84,7 @@ services: {
 				"dynamodb:PutItem",
 				"dynamodb:UpdateItem",
 				"dynamodb:DeleteItem",
-			  "dynamodb:BatchGetItem",
+				"dynamodb:BatchGetItem",
 				"dynamodb:ConditionCheckItem",
 				"dynamodb:GetItem",
 				"dynamodb:GetRecords",

@@ -1,8 +1,6 @@
-services: ddb: {
-	build: {
-		context: "../../"
-		acornfile: "../../Acornfile"
-	}
+services: ddb: build: {
+	context:   "../../"
+	acornfile: "../../Acornfile"
 }
 
 containers: plaintext: {
