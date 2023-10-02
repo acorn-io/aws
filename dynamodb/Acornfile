@@ -1,0 +1,192 @@
+name:        "AWS DynamoDB"
+description: "Amazon's fast and flexible NoSQL database"
+info:        "\(localData.info)"
+readme:      "./README.md"
+icon:        "./ddb.svg"
+
+args: {
+	// Name to assign the table during creation.
+	tableName: ""
+	// Key used to partition records. Default value is "id".
+	partitionKey: "id"
+	// Type of the partition key. Default value is "STRING". BINARY, STRING, and NUMBER are the valid types. See https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html#HowItWorks.DataTypes for more details.
+	partitionKeyType: "STRING"
+	// Key used to sort partitioned records.
+	sortKey: ""
+	// Type of the sort key. Default value is "STRING". BINARY, STRING, and NUMBER are the valid types. See https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.NamingRulesDataTypes.html#HowItWorks.DataTypes for more details.
+	sortKeyType: "STRING"
+	// Key value pairs to apply to all resources.
+	tags: {}
+	// Deletion protection, you must set to false in order for the DynamoDB to be deleted. Default value is false.
+	deletionProtection: false
+	// Do not take a final snapshot on delete or update and replace operations. Default is false. If skip is enabled the DB will be gone forever if deleted or replaced.
+	skipSnapshotOnDelete: false
+}
+
+services: {
+	admin: {
+		name: "DynamoDB Admin"
+		generated: job: "apply"
+		consumer: permissions: rules: [{
+			apiGroups: ["aws.acorn.io"]
+			verbs: ["dynamodb:*"]
+			resources: ["*"]
+		}]
+	}
+
+	readonly: {
+		name: "DynamoDB Reader"
+		generated: job: "apply"
+		consumer: permissions: rules: [{
+			apiGroups: ["aws.acorn.io"]
+			verbs: [
+				"dynamodb:BatchGetItem",
+				"dynamodb:ConditionCheckItem",
+				"dynamodb:GetItem",
+				"dynamodb:GetRecords",
+				"dynamodb:GetShardIterator",
+				"dynamodb:PartiQLSelect",
+				"dynamodb:Query",
+				"dynamodb:Scan",
+			]
+			resources: ["*"]
+		}]
+	}
+
+	writeonly: {
+		name: "DynamoDB Writer"
+		generated: job: "apply"
+		consumer: permissions: rules: [{
+			apiGroups: ["aws.acorn.io"]
+			verbs: [
+				"dynamodb:BatchWriteItem",
+				"dynamodb:PartiQLInsert",
+				"dynamodb:PartiQLUpdate",
+				"dynamodb:PutItem",
+				"dynamodb:UpdateItem",
+			]
+			resources: ["*"]
+		}]
+	}
+
+	readwrite: {
+		name:    "DynamoDB Reader Writer"
+		default: true
+		generated: job: "apply"
+		consumer: permissions: rules: [{
+			apiGroups: ["aws.acorn.io"]
+			verbs: [
+				"dynamodb:BatchWriteItem",
+				"dynamodb:PartiQLInsert",
+				"dynamodb:PartiQLUpdate",
+				"dynamodb:PartiQLSelect",
+				"dynamodb:PartiQLDelete",
+				"dynamodb:PutItem",
+				"dynamodb:UpdateItem",
+				"dynamodb:DeleteItem",
+				"dynamodb:BatchGetItem",
+				"dynamodb:ConditionCheckItem",
+				"dynamodb:GetItem",
+				"dynamodb:GetRecords",
+				"dynamodb:GetShardIterator",
+				"dynamodb:Query",
+				"dynamodb:Scan",
+			]
+			resources: ["*"]
+		}]
+	}
+}
+
+jobs: apply: {
+	build: {
+		context:    "."
+		dockerfile: "Dockerfile"
+		additionalContexts: common: "../libs"
+	}
+	files: "/app/config.json": std.toJSON(args)
+	env: {
+		CDK_DEFAULT_ACCOUNT:          "@{secrets.aws-context.account-id}"
+		CDK_DEFAULT_REGION:           "@{secrets.aws-context.aws-region}"
+		VPC_ID:                       "@{secrets.aws-context.vpc-id}"
+		ACORN_ACCOUNT:                "@{acorn.account}"
+		ACORN_NAME:                   "@{acorn.name}"
+		ACORN_PROJECT:                "@{acorn.project}"
+		ACORN_EXTERNAL_ID:            "@{acorn.externalID}"
+		CDK_RUNNER_DELETE_PROTECTION: "\(args.deletionProtection)"
+	}
+	events: ["create", "update", "delete"]
+	permissions: rules: [{
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"cloudformation:DescribeStacks",
+			"cloudformation:CreateChangeSet",
+			"cloudformation:DescribeStackEvents",
+			"cloudformation:DescribeStackResources",
+			"cloudformation:DescribeChangeSet",
+			"cloudformation:ExecuteChangeSet",
+			"cloudformation:PreviewStackUpdate",
+			"cloudformation:UpdateStack",
+			"cloudformation:GetTemplateSummary",
+			"cloudformation:DeleteStack",
+			"cloudformation:GetTemplate",
+			"dynamodb:DescribeTable",
+			"dynamodb:CreateTable",
+			"dynamodb:DeleteTable",
+			"dynamodb:TagResource",
+			"dynamodb:ListTagsOfResource",
+			"dynamodb:DescribeTimeToLive",
+			"dynamodb:DescribeContributorInsights",
+			"dynamodb:DescribeContinuousBackups",
+			"dynamodb:DescribeKinesisStreamingDestination",
+			"application-autoscaling:DeregisterScalableTarget",
+		]
+		resources: ["*"]
+	}, {
+		apiGroup: "aws.acorn.io"
+		verbs: [
+			"ec2:DescribeAvailabilityZones",
+			"ec2:DescribeVpcs",
+			"ec2:DescribeSubnets",
+			"ec2:DescribeRouteTables",
+		]
+		resources: ["*"]
+	}, {
+		apiGroup: "api.acorn.io"
+		verbs: [
+			"create",
+		]
+		resources: ["events"]
+	}]
+}
+
+secrets: "aws-context": {
+	name:     "AWS Context"
+	external: "context://aws"
+	type:     "opaque"
+	data: {
+		"account-id": ""
+		"vpc-id":     ""
+		"aws-region": ""
+	}
+}
+
+localData: info: """
+	## How To Use ([examples](https://github.com/acorn-io/aws/tree/main/dynamodb/examples))
+
+	1) Link your app with this acorn via an `external` service named "ddb".
+
+	```typescript
+			 services: ddb: {
+					external: "@{acorn.name}"
+			 }
+			 containers: app: {
+					build: context: "./"
+					ports: publish: ["8080/http"]
+					consumes: ["ddb"]
+					env: {
+							TABLE_NAME: "@{@{service.}ddb.data.name}"
+							TABLE_ARN: "@{@{service.}ddb.data.arn}"
+					 }
+			 }
+	```
+	"""
