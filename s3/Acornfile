@@ -83,7 +83,7 @@ jobs: {
 
 	apply: {
 		dependsOn: ["cleanup"]
-		memory: 128Mi
+		memory: 768Mi 
 		build: {
 			context:    "."
 			dockerfile: "Dockerfile"
