@@ -58,7 +58,8 @@ services: admin: {
 
 jobs: {
 	cleanup: {
-		memory: 768Mi
+		// might be possible to reduce this memory limit even further
+		memory: 256Mi
 		build: {
 			context:    "../utils/s3-cleanup/"
 			dockerfile: "../utils/s3-cleanup/Dockerfile"
@@ -83,7 +84,7 @@ jobs: {
 
 	apply: {
 		dependsOn: ["cleanup"]
-		memory: 768Mi 
+		memory: 512Mi
 		build: {
 			context:    "."
 			dockerfile: "Dockerfile"
@@ -94,6 +95,8 @@ jobs: {
 		}
 		files: "/app/config.json": std.toJSON(args)
 		env: {
+			GOGC:                         "25"
+			NODE_OPTIONS:                 "--max-old-space-size=256"
 			CDK_DEFAULT_ACCOUNT:          "@{secrets.aws-context.account-id}"
 			CDK_DEFAULT_REGION:           "@{secrets.aws-context.aws-region}"
 			VPC_ID:                       "@{secrets.aws-context.vpc-id}"
@@ -117,6 +120,7 @@ jobs: {
 				"cloudformation:UpdateStack",
 				"cloudformation:GetTemplateSummary",
 				"cloudformation:DeleteStack",
+				"cloudformation:GetTemplate",
 				"s3:CreateBucket",
 				"s3:DeleteBucket",
 				"s3:PutBucketVersioning",

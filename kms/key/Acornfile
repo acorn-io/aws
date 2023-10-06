@@ -61,13 +61,15 @@ services: key: {
 }
 
 jobs: apply: {
-	memory: 768Mi
+	memory: 512Mi
 	build: {
 		context: "."
 		additionalContexts: common: "../../libs"
 	}
 	files: "/app/config.json": std.toJSON(args)
 	env: {
+		GOGC:                "25"
+		NODE_OPTIONS:        "--max-old-space-size=256"
 		CDK_DEFAULT_ACCOUNT: "@{secrets.aws-context.account-id}"
 		CDK_DEFAULT_REGION:  "@{secrets.aws-context.aws-region}"
 		VPC_ID:              "@{secrets.aws-context.vpc-id}"
