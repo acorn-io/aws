@@ -58,6 +58,7 @@ services: admin: {
 
 jobs: {
 	cleanup: {
+		memory: 768Mi
 		build: {
 			context:    "../utils/s3-cleanup/"
 			dockerfile: "../utils/s3-cleanup/Dockerfile"
@@ -82,6 +83,7 @@ jobs: {
 
 	apply: {
 		dependsOn: ["cleanup"]
+		memory: 128Mi
 		build: {
 			context:    "."
 			dockerfile: "Dockerfile"

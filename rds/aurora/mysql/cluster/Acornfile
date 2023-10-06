@@ -49,7 +49,7 @@ jobs: apply: {
 		}
 	}
 	files: "/app/config.json": std.toJSON(args)
-	memory: 1024Mi
+	memory: 768Mi
 	env: {
 		CDK_DEFAULT_ACCOUNT:          "@{secrets.aws-context.account-id}"
 		CDK_DEFAULT_REGION:           "@{secrets.aws-context.aws-region}"
