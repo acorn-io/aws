@@ -8,7 +8,7 @@ RUN --mount=type=cache,target=/root/go/pkg \
     ls ../ &&\
     go build -o s3 .
 
-FROM ghcr.io/acorn-io/aws/utils/cdk-runner:v0.6.0 as cdk-runner
+FROM ghcr.io/acorn-io/aws/utils/cdk-runner:v0.7.1 as cdk-runner
 FROM cgr.dev/chainguard/wolfi-base
 RUN apk add -U --no-cache nodejs bash busybox jq curl zip && \
     apk del --no-cache wolfi-base apk-tools
@@ -19,4 +19,8 @@ COPY ./scripts ./scripts
 COPY --from=utils ./scripts/ ./scripts/
 COPY --from=cdk-runner /cdk-runner .
 COPY --from=build /src/s3/s3 .
+
+ENV GOGC="25"
+ENV NODE_OPTIONS="--max-old-space-size=256"
+
 CMD [ "/app/cdk-runner" ]

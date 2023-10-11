@@ -98,6 +98,7 @@ services: {
 }
 
 jobs: apply: {
+	memory: 512Mi
 	build: {
 		context:    "."
 		dockerfile: "Dockerfile"

@@ -12,6 +12,7 @@ args: {
 services: "secret-manager": generated: job: "generate-secrets"
 
 jobs: "generate-secrets": {
+	memory: 128Mi
 	build: context: "."
 	schedule: args.refreshSchedule
 	env: {

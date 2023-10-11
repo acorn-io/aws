@@ -58,6 +58,8 @@ services: admin: {
 
 jobs: {
 	cleanup: {
+		// might be possible to reduce this memory limit even further
+		memory: 256Mi
 		build: {
 			context:    "../utils/s3-cleanup/"
 			dockerfile: "../utils/s3-cleanup/Dockerfile"
@@ -82,6 +84,7 @@ jobs: {
 
 	apply: {
 		dependsOn: ["cleanup"]
+		memory: 512Mi
 		build: {
 			context:    "."
 			dockerfile: "Dockerfile"
@@ -115,6 +118,7 @@ jobs: {
 				"cloudformation:UpdateStack",
 				"cloudformation:GetTemplateSummary",
 				"cloudformation:DeleteStack",
+				"cloudformation:GetTemplate",
 				"s3:CreateBucket",
 				"s3:DeleteBucket",
 				"s3:PutBucketVersioning",

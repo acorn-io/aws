@@ -27,6 +27,7 @@ services: role: {
 }
 
 jobs: apply: {
+	memory: 512Mi
 	build: {
 		context: "."
 		additionalContexts: {

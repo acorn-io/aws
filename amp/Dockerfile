@@ -19,4 +19,8 @@ COPY ./scripts ./scripts
 COPY --from=utils ./scripts/ ./scripts/
 COPY --from=cdk-runner /cdk-runner .
 COPY --from=build /src/amp/amp .
+
+ENV GOGC="25"
+ENV NODE_OPTIONS="--max-old-space-size=256"
+
 CMD [ "/app/cdk-runner" ]

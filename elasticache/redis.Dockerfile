@@ -21,4 +21,8 @@ COPY cdk.json ./
 COPY scripts ./scripts
 COPY --from=cdk-runner /cdk-runner .
 COPY --from=build /src/redis/elasticache .
+
+ENV GOGC="25"
+ENV NODE_OPTIONS="--max-old-space-size=256"
+
 CMD [ "/app/cdk-runner" ]

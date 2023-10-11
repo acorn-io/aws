@@ -22,4 +22,8 @@ COPY ./scripts ./scripts
 COPY --from=build /src/sqs/sqs .
 COPY --from=utils . ./scripts/ ./scripts/
 COPY --from=cdk-runner /cdk-runner .
+
+ENV GOGC="25"
+ENV NODE_OPTIONS="--max-old-space-size=256"
+
 CMD [ "/app/cdk-runner" ]

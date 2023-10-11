@@ -22,4 +22,8 @@ COPY cdk.json ./
 COPY scripts ./scripts
 COPY --from=cdk-runner /cdk-runner .
 COPY --from=build /src/dynamo/dynamo .
+
+ENV GOGC="25"
+ENV NODE_OPTIONS="--max-old-space-size=256"
+
 CMD [ "/app/cdk-runner" ]

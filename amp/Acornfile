@@ -42,6 +42,7 @@ services: "remote-write": {
 }
 
 jobs: apply: {
+	memory: 512Mi
 	build: {
 		context: "."
 		additionalContexts: {
