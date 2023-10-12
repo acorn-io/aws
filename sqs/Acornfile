@@ -141,6 +141,7 @@ localData: info: """
 		image: "app-image"
 		consumes: ["sqs"]
 		env: {
+			QUEUE_NAME: "@{@{service.}sqs.data.name}"
 			QUEUE_URL: "@{@{service.}sqs.data.url}"
 		}
 	}
