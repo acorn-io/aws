@@ -108,6 +108,9 @@ func NewRedisStack(scope constructs.Construct, id string, props *redisStackProps
 	awscdk.NewCfnOutput(stack, jsii.String("tokenarn"), &awscdk.CfnOutputProps{
 		Value: token.SecretArn(),
 	})
+	awscdk.NewCfnOutput(stack, jsii.String("transitencryption"), &awscdk.CfnOutputProps{
+		Value: jsii.String("true"),
+	})
 
 	return stack, nil
 }

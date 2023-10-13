@@ -9,5 +9,6 @@ containers: app: {
 	env: {
 		MEMCACHED_HOST: "@{service.memcached.data.address}"
 		MEMCACHED_PORT: "@{service.memcached.data.port}"
+		TRANSIT_ENCRYPTION: "@{service.memcached.data.transitEncryption}"
 	}
 }
