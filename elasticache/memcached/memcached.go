@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/acorn-io/aws/elasticache"
@@ -78,6 +79,9 @@ func NewMemcachedStack(scope constructs.Construct, id string, props *memcachedSt
 	})
 	awscdk.NewCfnOutput(stack, jsii.String("port"), &awscdk.CfnOutputProps{
 		Value: memcachedCluster.AttrConfigurationEndpointPort(),
+	})
+	awscdk.NewCfnOutput(stack, jsii.String("transitencryption"), &awscdk.CfnOutputProps{
+		Value: jsii.String(strconv.FormatBool(props.TransitEncryption)),
 	})
 
 	return stack, nil

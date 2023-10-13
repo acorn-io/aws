@@ -11,6 +11,7 @@ CLUSTER_ARN=$(jq -r '.[] | select(.OutputKey=="clusterarn")|.OutputValue' output
 ADDRESS=$(jq -r '.[] | select(.OutputKey=="address")|.OutputValue' outputs.json)
 PORT=$(jq -r '.[]| select(.OutputKey=="port")|.OutputValue' outputs.json)
 TOKEN_ARN=$(jq -r '.[]| select(.OutputKey=="tokenarn")|.OutputValue' outputs.json)
+TRANSIT_ENCRYPTION=$(jq -r '.[]| select(.OutputKey=="transitencryption")|.OutputValue' outputs.json)
 
 cat > /run/secrets/output <<EOF
 services: admin: {
@@ -29,6 +30,7 @@ if [ -n "${TOKEN_ARN}" ]; then
     clusterArn: "${CLUSTER_ARN}"
     address: "${ADDRESS}"
     port: "${PORT}"
+    transitEncryption: "${TRANSIT_ENCRYPTION}"
   }
 }
 
@@ -46,6 +48,7 @@ else
     clusterArn: "${CLUSTER_ARN}"
     address: "${ADDRESS}"
     port: "${PORT}"
+    transitEncryption: "${TRANSIT_ENCRYPTION}"
   }
 }
 EOF

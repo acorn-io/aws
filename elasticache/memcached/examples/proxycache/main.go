@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -14,9 +17,10 @@ import (
 )
 
 const (
-	cacheExpiry     = 60 * 60 // 1 hour in seconds
-	defaultCacheKey = "proxyCache:"
-	chunkSizeBytes  = 900 * 1024 // 900KB
+	cacheExpiry      = 60 * 60 // 1 hour in seconds
+	defaultCacheKey  = "proxyCache:"
+	chunkSizeBytes   = 900 * 1024 // 900KB
+	encryptionEnvVar = "TRANSIT_ENCRYPTION"
 )
 
 func setChunks(mc *memcache.Client, baseKey string, data []byte) error {
@@ -65,6 +69,15 @@ func getChunks(mc *memcache.Client, baseKey string) ([]byte, error) {
 
 func main() {
 	mc := memcache.New(os.Getenv("MEMCACHED_HOST") + ":" + os.Getenv("MEMCACHED_PORT"))
+	if os.Getenv(encryptionEnvVar) == "true" {
+		// enable TLS
+		mc.DialContext = func(ctx context.Context, network, address string) (net.Conn, error) {
+			tlsDialer := tls.Dialer{
+				Config: &tls.Config{InsecureSkipVerify: true},
+			}
+			return tlsDialer.DialContext(ctx, network, address)
+		}
+	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		targetURL := r.URL.Query().Get("url")
