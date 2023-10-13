@@ -159,14 +159,18 @@ localData: info: """
 
 ## Sample Usage
 ```typescript
+services: rds: {
+	external: "@{acorn.name}"
+}
+
 containers: app: {
   image: "app-image"
   env: {
-    DB_HOST: "@{@{service.}@{acorn.name}.address}"
-    DB_PORT: "@{@{service.}@{acorn.name}.port.3306}"
-    DB_NAME: "@{@{service.}@{acorn.name}.data.dbName}"
-    DB_USER: "@{@{service.}@{acorn.name}.secrets.admin.username}"
-    DB_PASS: "@{@{service.}@{acorn.name}.secrets.admin.password}"
+    DB_HOST: "@{@{service.}rds.address}"
+    DB_PORT: "@{@{service.}rds.port.3306}"
+    DB_NAME: "@{@{service.}rds.data.dbName}"
+    DB_USER: "@{@{service.}rds.secrets.admin.username}"
+    DB_PASS: "@{@{service.}rds.secrets.admin.password}"
   }
 }
 ```
