@@ -35,7 +35,7 @@ type RDSStackProps struct {
 	InstanceClass             string            `json:"instanceClass"`
 	InstanceSize              string            `json:"instanceSize"`
 	Parameters                map[string]string `json:"parameters"`
-	RestoreSnapshotArn        string            `json:"restoreSnapshotArn"`
+	RestoreSnapshotArn        string            `json:"restoreFromSnapshotArn"`
 	SkipSnapShotOnDelete      bool              `json:"skipSnapshotOnDelete"`
 	Tags                      map[string]string `json:"tags"`
 	VpcID                     string
@@ -46,6 +46,22 @@ type RDSStackProps struct {
 	// Scaling Units for serverless v2
 	AuroraCapacityUnitsV2Min float64 `json:"auroraCapacityUnitsV2Min"`
 	AuroraCapacityUnitsV2Max float64 `json:"auroraCapacityUnitsV2Max"`
+}
+
+type SnapshotAspect struct {
+	SnapshotIdentifier string
+}
+
+func (sa *SnapshotAspect) Visit(node constructs.IConstruct) {
+	if n, ok := node.(awsrds.CfnDBCluster); ok {
+		n.AddPropertyOverride(jsii.String("SnapshotIdentifier"), jsii.String(sa.SnapshotIdentifier))
+	}
+}
+
+func NewSnapshotAspect(snapshotIdentifier string) *SnapshotAspect {
+	return &SnapshotAspect{
+		SnapshotIdentifier: snapshotIdentifier,
+	}
 }
 
 func NewParameterGroup(scope constructs.Construct, name *string, props *RDSStackProps, engine awsrds.IClusterEngine) awsrds.ParameterGroup {

@@ -22,6 +22,8 @@ args: {
 	auroraCapacityUnitsMax: 8
 	// Time in minutes to pause Aurora serverless-v1 DB cluster after it's been idle. Default is 10 set to 0 to disable.
 	autoPauseDurationMinutes: 10
+	// Create a new cluster from this snapshot or revert the existing database cluster to this snapshot. Once this has been set, should remain the same on subsequent runs. Default is "".
+	restoreFromSnapshotArn: ""
 	// Do not take a final snapshot on delete or update and replace operations. Default is false. If skip is enabled the DB will be gone forever if deleted or replaced.
 	skipSnapshotOnDelete: false
 	// Key value pairs of tags to apply to the RDS cluster and all other resources.

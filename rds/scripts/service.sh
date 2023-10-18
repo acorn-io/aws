@@ -5,6 +5,7 @@ PORT="$(          jq -r '.[] | select(.OutputKey=="port")            |.OutputVal
 ADDRESS="$(       jq -r '.[] | select(.OutputKey=="host")            |.OutputValue' outputs.json )"
 ADMIN_USERNAME="$(jq -r '.[] | select(.OutputKey=="adminusername")   |.OutputValue' outputs.json )"
 PASSWORD_ARN="$(  jq -r '.[] | select(.OutputKey=="adminpasswordarn")|.OutputValue' outputs.json )"
+CLUSTER_ID="$(   jq -r '.[] | select(.OutputKey=="clusterid")      |.OutputValue' outputs.json )"
 
 ADMIN_PASSWORD="$(aws --output json secretsmanager get-secret-value --secret-id "${PASSWORD_ARN}" --query 'SecretString' | jq -r .|jq -r .password)"
 
@@ -15,6 +16,7 @@ services: rds: {
   ports: [${PORT}]
   data: {
     dbName: "${DB_NAME}"
+    clusterId: "${CLUSTER_ID}"
   }
 }
 

@@ -69,6 +69,10 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 		}),
 	})
 
+	if props.RestoreSnapshotArn != "" {
+		awscdk.Aspects_Of(cluster).Add(rds.NewSnapshotAspect(props.RestoreSnapshotArn))
+	}
+
 	port := "3306"
 	pSlice := strings.SplitN(*cluster.ClusterEndpoint().SocketAddress(), ":", 2)
 	if len(pSlice) == 2 {
@@ -86,6 +90,9 @@ func NewRDSStack(scope constructs.Construct, props *rds.RDSStackProps) awscdk.St
 	})
 	awscdk.NewCfnOutput(stack, jsii.String("adminpasswordarn"), &awscdk.CfnOutputProps{
 		Value: cluster.Secret().SecretArn(),
+	})
+	awscdk.NewCfnOutput(stack, jsii.String("clusterid"), &awscdk.CfnOutputProps{
+		Value: cluster.ClusterIdentifier(),
 	})
 
 	return stack

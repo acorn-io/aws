@@ -25,6 +25,8 @@ args: {
 	instanceSize: "medium"
 	// RDS MySQL Database Parameters to apply to the cluster. Must be k/v string pairs(ex. max_connections: "1000").
 	parameters: {}
+	// Creates a new cluster from this snapshot or revert the existing database cluster to this snapshot. Once this has been set, should remain the same on subsequent runs. Default is "".
+	restoreFromSnapshotArn: ""
 	// Do not take a final snapshot on delete or update and replace operations. Default is false. If skip is enabled the DB will be gone forever if deleted or replaced.
 	skipSnapshotOnDelete: false
 	// Enable Performance insights. Default is false.
@@ -39,15 +41,7 @@ services: rds: {
 }
 
 jobs: apply: {
-	build: {
-		context:    "../../../"
-		dockerfile: "../../../mysql.Dockerfile"
-		buildArgs: MAIN: "cluster"
-		additionalContexts: {
-			common: "../../../../libs"
-			utils:  "../../../../utils"
-		}
-	}
+	build: images.cdk.containerBuild
 	files: "/app/config.json": std.toJSON(args)
 	memory: 512Mi
 	env: {
@@ -124,6 +118,13 @@ images: user: containerBuild: {
 	context:    "../../../"
 	dockerfile: "../../../mysql.Dockerfile"
 	target:     "user"
+}
+
+images: cdk: containerBuild: {
+	context:    "../../../"
+	dockerfile: "../../../mysql.Dockerfile"
+	buildArgs: MAIN:            "cluster"
+	additionalContexts: common: "../../../../libs"
 }
 
 secrets: admin: {
