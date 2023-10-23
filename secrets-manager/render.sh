@@ -13,7 +13,7 @@ fi
 cat > /run/secrets/output <<EOF
 services: "secret-manager": {
     default: true
-    secrets: ["secret-value"]
+    secrets: ["item"]
 }
 
 secrets: "item": {
