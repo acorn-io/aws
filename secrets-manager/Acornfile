@@ -4,7 +4,7 @@ args: {
 	// Cron based schedule
 	refreshSchedule: ""
 	// Format of the secret. If json the object must be in the format of a JSON object with only string values
-	format: "text" | "json"
+	format: enum("text", "json") || default "text"
 	// Region containing the secret
 	region: ""
 }

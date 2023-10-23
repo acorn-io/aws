@@ -15,9 +15,9 @@ args: {
 	// Deletion protection, you must set to false in order for the RDS db to be deleted. Default is false
 	deletionProtection: false
 	// Aurora Capacity Units minimum value(in 0.5 increments). Default is 0.5
-	auroraCapacityUnitsV2Min: *0.5 | float | int
+	auroraCapacityUnitsV2Min: 0.5
 	// Aurora Capacity Units maximum value must be larger than minimum value, and 1<=n<=128 (in 0.5 increments). Default is 8.0
-	auroraCapacityUnitsV2Max: *8.0 | float | int
+	auroraCapacityUnitsV2Max: 8.0
 	// RDS MySQL Database Parameters to apply to the cluster. Must be k/v string pairs(ex. max_connections: "1000").
 	parameters: {}
 	// Creates a new cluster from this snapshot or revert the existing database cluster to this snapshot. Once this has been set, should remain the same on subsequent runs. Default is "".
