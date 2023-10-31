@@ -20,6 +20,7 @@ const (
 	ReasonNoUpdates                = "No updates are to be performed."
 	CdkRunnerDeletionProtectionTag = "acorn.io/cdk-runner/deletion-protection"
 	DeletionProtectionEnvKey       = "CDK_RUNNER_DELETE_PROTECTION"
+	DryRunEnvKey                   = "DRY_RUN"
 )
 
 var (
@@ -55,7 +56,7 @@ func DeployStack(c *Client, stackName, template string) error {
 		return err
 	}
 
-	if err := os.WriteFile("/app/current-template.yaml", []byte(currentTemplate), 0644); err != nil {
+	if err := os.WriteFile("/app/current-template.yaml", currentTemplate, 0644); err != nil {
 		return err
 	}
 
@@ -68,8 +69,12 @@ func DeployStack(c *Client, stackName, template string) error {
 		return err
 	}
 
-	if err := hooks.PreChangeSetApplyHook(hooks.PreChangeSetApplyHookExecutable); err != nil {
+	if err := hooks.RunChangesetHook(hooks.PreChangeSetApplyHookExecutable); err != nil {
 		return err
+	}
+
+	if os.Getenv(DryRunEnvKey) == "true" {
+		return hooks.RunChangesetHook(hooks.DryRunHookExecutable)
 	}
 
 	stack.Refresh(c)
@@ -128,6 +133,18 @@ func createAndWaitForChangeset(c *Client, stack *CfnStack, template string) (*cl
 	}
 
 	return changeSetOutput, nil
+}
+
+func getChangesetJson(c *Client, changeSetId string, stack *CfnStack) ([]byte, error) {
+	describeChangeSetOutput, err := c.Client.DescribeChangeSet(c.Ctx, &cloudformation.DescribeChangeSetInput{
+		ChangeSetName: aws.String(changeSetId),
+		StackName:     aws.String(stack.StackName),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return json.Marshal(describeChangeSetOutput.Changes)
 }
 
 func outputChangesInChangeSet(c *Client, changeSetId string, stack *CfnStack) error {
