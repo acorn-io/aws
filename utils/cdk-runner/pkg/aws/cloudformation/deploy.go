@@ -135,18 +135,6 @@ func createAndWaitForChangeset(c *Client, stack *CfnStack, template string) (*cl
 	return changeSetOutput, nil
 }
 
-func getChangesetJson(c *Client, changeSetId string, stack *CfnStack) ([]byte, error) {
-	describeChangeSetOutput, err := c.Client.DescribeChangeSet(c.Ctx, &cloudformation.DescribeChangeSetInput{
-		ChangeSetName: aws.String(changeSetId),
-		StackName:     aws.String(stack.StackName),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return json.Marshal(describeChangeSetOutput.Changes)
-}
-
 func outputChangesInChangeSet(c *Client, changeSetId string, stack *CfnStack) error {
 	describeChangeSetOutput, err := c.Client.DescribeChangeSet(c.Ctx, &cloudformation.DescribeChangeSetInput{
 		ChangeSetName: aws.String(changeSetId),
