@@ -127,6 +127,10 @@ func main() {
 	if err := common.NewConfig(stackProps); err != nil {
 		logrus.Fatal(err)
 	}
+	err := rds.ValidateProps(stackProps)
+	if err != nil {
+		logrus.Fatal(err)
+	}
 
 	NewRDSStack(app, stackProps)
 
