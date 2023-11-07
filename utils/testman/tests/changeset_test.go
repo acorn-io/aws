@@ -134,7 +134,7 @@ func TestChangeset(t *testing.T) {
 
 					concreteArgs := []string{"run", "--dangerous", "--wait=false", "-n", name, acornDir, "--dryRun=true"}
 					allArgs := append(concreteArgs, args...)
-					allArgs = append(allArgs, "--changeset="+changeset)
+					allArgs = append(allArgs, "--testCase="+changeset)
 
 					runResult := helper.RunAcornCommand(t, allArgs...)
 					if runResult.ExitCode != 0 {

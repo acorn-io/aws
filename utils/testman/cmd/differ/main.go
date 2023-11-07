@@ -67,17 +67,19 @@ func main() {
 		fatalPrint("unexpected args")
 	}
 
-	goldenChangeset, err := normalizeJSON([]byte(os.Getenv("CHANGESET")))
+	originalGoldenChangeset := os.Getenv("TESTCASE")
+	goldenChangeset, err := normalizeJSON([]byte(originalGoldenChangeset))
 	if err != nil {
-		fatalPrint(fmt.Sprintf("failed to normalize the golden changeset (%s): %s", string(goldenChangeset), err.Error()))
+		fatalPrint(fmt.Sprintf("failed to normalize the golden changeset (%s): %s", originalGoldenChangeset, err.Error()))
 	}
 
-	currentChangeset, err := normalizeJSON(mustReadFile(os.Args[3]))
+	originalNewChangeset := mustReadFile(os.Args[3])
+	newChangeset, err := normalizeJSON(originalNewChangeset)
 	if err != nil {
-		fatalPrint(fmt.Sprintf("failed to normalize the new changeset (%s): %s", string(currentChangeset), err.Error()))
+		fatalPrint(fmt.Sprintf("failed to normalize the new changeset (%s): %s", originalNewChangeset, err.Error()))
 	}
 
-	if !bytes.Equal(goldenChangeset, currentChangeset) {
-		fatalPrint("current changeset does not match the golden changeset: " + string(currentChangeset))
+	if !bytes.Equal(goldenChangeset, newChangeset) {
+		fatalPrint("new changeset does not match the golden changeset: " + string(newChangeset))
 	}
 }

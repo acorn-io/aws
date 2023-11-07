@@ -104,15 +104,11 @@ func main() {
 	stackName := os.Getenv("ACORN_EXTERNAL_ID")
 	event := os.Getenv("ACORN_EVENT")
 
-	if os.Getenv("DRY_RUN") != "true" {
-		logrus.Fatal("uh nope")
-	}
-
 	if err := waitForStackToFinishTransition(stackName); err != nil {
 		logrus.Fatal(err)
 	}
 
-	if event == "create" || event == "update" || os.Getenv(cloudformation.DryRunEnvKey) == "true" {
+	if event == "create" || event == "update" {
 		if err := cdk.GenerateTemplateFile("cfn.yaml"); err != nil {
 			logrus.Fatal(err)
 		}

@@ -2,7 +2,6 @@ package cloudformation
 
 import (
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 	"time"
@@ -104,7 +103,7 @@ func StackOperationInProgress(c *Client, stackName string) (bool, string, error)
 }
 
 func (s *CfnStack) LogEvents(c *Client) {
-	if os.Getenv(DryRunEnvKey) == "true" {
+	if IsDryRun() {
 		// don't log events for dry runs
 		return
 	}

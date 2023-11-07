@@ -23,6 +23,11 @@ const (
 	DryRunEnvKey                   = "DRY_RUN"
 )
 
+// IsDryRun returns true if the current run is a dry run
+func IsDryRun() bool {
+	return os.Getenv(DryRunEnvKey) == "true"
+}
+
 var (
 	acornTags = map[string]string{
 		"acorn.io/managed":      "true",
@@ -73,7 +78,8 @@ func DeployStack(c *Client, stackName, template string) error {
 		return err
 	}
 
-	if os.Getenv(DryRunEnvKey) == "true" {
+	if IsDryRun() {
+		// run the dry run hook and end execution here
 		return hooks.RunChangesetHook(hooks.DryRunHookExecutable)
 	}
 
