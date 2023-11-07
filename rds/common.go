@@ -1,6 +1,8 @@
 package rds
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-cdk-go/awscdk/v2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsec2"
 	"github.com/aws/aws-cdk-go/awscdk/v2/awsrds"
@@ -28,6 +30,7 @@ var (
 
 type RDSStackProps struct {
 	awscdk.StackProps
+	RegularUser               string            `json:"username"`
 	AdminUser                 string            `json:"adminUsername"`
 	DatabaseName              string            `json:"dbName"`
 	DeletionProtection        bool              `json:"deletionProtection"`
@@ -46,6 +49,16 @@ type RDSStackProps struct {
 	// Scaling Units for serverless v2
 	AuroraCapacityUnitsV2Min float64 `json:"auroraCapacityUnitsV2Min"`
 	AuroraCapacityUnitsV2Max float64 `json:"auroraCapacityUnitsV2Max"`
+}
+
+// ValidateProps validates the given props
+// returns an error if the props are invalid
+func ValidateProps(props *RDSStackProps) error {
+	if props.AdminUser == props.RegularUser {
+		return fmt.Errorf("the admin username (%s) must differ from the standard username (%s)", props.AdminUser, props.RegularUser)
+	}
+
+	return nil
 }
 
 type SnapshotAspect struct {

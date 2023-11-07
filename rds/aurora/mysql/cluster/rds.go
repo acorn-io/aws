@@ -113,6 +113,12 @@ func main() {
 	}
 
 	common.AppendScopedTags(app, stackProps.Tags)
+
+	err := rds.ValidateProps(stackProps)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
 	NewRDSStack(app, stackProps)
 
 	app.Synth(nil)
