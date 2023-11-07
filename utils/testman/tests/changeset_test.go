@@ -52,7 +52,7 @@ func trimToDir(path, targetDir string) (string, error) {
 
 	// Construct the new path from the beginning to the target directory
 	newPath := filepath.Join(components[:targetIndex+1]...)
-	return "/" + newPath, nil
+	return string(filepath.Separator) + newPath, nil
 }
 
 func loadChangesetMap(path string) (map[string]string, error) {
