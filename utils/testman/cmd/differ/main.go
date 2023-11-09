@@ -8,14 +8,10 @@ import (
 	"os"
 )
 
-func fatalPrint(logLine string) {
-	panic(logLine)
-}
-
 func mustReadFile(path string) []byte {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		fatalPrint(fmt.Sprintf("failed to read file %s: %s", path, err.Error()))
+		panic(fmt.Sprintf("failed to read file %s: %s", path, err.Error()))
 	}
 
 	return data
@@ -65,26 +61,26 @@ func filterKey(m map[string]any, keyToRemove string) {
 
 func main() {
 	if len(os.Args) != 4 {
-		fatalPrint("unexpected args")
+		panic("unexpected args")
 	}
 
 	originalGoldenChangeset, err := base64.StdEncoding.DecodeString(os.Getenv("TESTCASE"))
 	if err != nil {
-		fatalPrint(fmt.Sprintf("failed to decode golden changeset: %s", err.Error()))
+		panic(fmt.Sprintf("failed to decode golden changeset: %s", err.Error()))
 	}
 
 	goldenChangeset, err := normalizeJSON(originalGoldenChangeset)
 	if err != nil {
-		fatalPrint(fmt.Sprintf("failed to normalize the golden changeset (%s): %s", string(originalGoldenChangeset), err.Error()))
+		panic(fmt.Sprintf("failed to normalize the golden changeset (%s): %s", string(originalGoldenChangeset), err.Error()))
 	}
 
 	originalNewChangeset := mustReadFile(os.Args[3])
 	newChangeset, err := normalizeJSON(originalNewChangeset)
 	if err != nil {
-		fatalPrint(fmt.Sprintf("failed to normalize the new changeset (%s): %s", originalNewChangeset, err.Error()))
+		panic(fmt.Sprintf("failed to normalize the new changeset (%s): %s", originalNewChangeset, err.Error()))
 	}
 
 	if !bytes.Equal(goldenChangeset, newChangeset) {
-		fatalPrint("new changeset does not match the golden changeset: " + string(newChangeset))
+		panic("new changeset does not match the golden changeset: " + string(newChangeset))
 	}
 }
