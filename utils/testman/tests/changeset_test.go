@@ -2,6 +2,7 @@ package tests
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -67,7 +68,7 @@ func loadChangesetMap(path string) (map[string]string, error) {
 		return nil, err
 	}
 
-	jsonMap, ok := obj.(map[string]interface{})
+	jsonMap, ok := obj.(map[string]any)
 	if !ok {
 		return nil, errors.New("could not cast object ot map")
 	}
@@ -132,9 +133,10 @@ func TestChangeset(t *testing.T) {
 						helper.RunAcornCommand(t, "rm", "--ignore-cleanup", name)
 					})
 
-					concreteArgs := []string{"run", "--dangerous", "--wait=false", "-n", name, acornDir, "--dryRun=true"}
+					base64Changeset := base64.StdEncoding.EncodeToString([]byte(changeset))
+
+					concreteArgs := []string{"run", "-e", "TESTCASE=" + base64Changeset, "--dangerous", "--wait=false", "-n", name, acornDir, "--dryRun=true"}
 					allArgs := append(concreteArgs, args...)
-					allArgs = append(allArgs, "--testCase="+changeset)
 
 					runResult := helper.RunAcornCommand(t, allArgs...)
 					if runResult.ExitCode != 0 {

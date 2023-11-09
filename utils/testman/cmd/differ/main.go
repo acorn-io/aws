@@ -2,14 +2,14 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
 )
 
 func fatalPrint(logLine string) {
-	fmt.Println(logLine)
-	os.Exit(1)
+	panic(logLine)
 }
 
 func mustReadFile(path string) []byte {
@@ -28,7 +28,7 @@ func mustReadFile(path string) []byte {
 //
 // this should allow us to accurately compare changesets
 func normalizeJSON(data []byte) ([]byte, error) {
-	var parsedJSON []map[string]interface{}
+	var parsedJSON []map[string]any
 
 	err := json.Unmarshal(data, &parsedJSON)
 	if err != nil {
@@ -44,16 +44,17 @@ func normalizeJSON(data []byte) ([]byte, error) {
 }
 
 // recursively filter the given key from the given map
-func filterKey(m map[string]interface{}, keyToRemove string) {
+func filterKey(m map[string]any, keyToRemove string) {
 	for k, v := range m {
 		if k == keyToRemove {
 			delete(m, k)
 		}
-		if nestedMap, ok := v.(map[string]any); ok {
-			filterKey(nestedMap, keyToRemove)
-		}
-		if nestedSlice, ok := v.([]any); ok {
-			for _, item := range nestedSlice {
+
+		switch nested := v.(type) {
+		case map[string]any:
+			filterKey(nested, keyToRemove)
+		case []any:
+			for _, item := range nested {
 				if nestedMap, ok := item.(map[string]any); ok {
 					filterKey(nestedMap, keyToRemove)
 				}
@@ -67,10 +68,14 @@ func main() {
 		fatalPrint("unexpected args")
 	}
 
-	originalGoldenChangeset := os.Getenv("TESTCASE")
-	goldenChangeset, err := normalizeJSON([]byte(originalGoldenChangeset))
+	originalGoldenChangeset, err := base64.StdEncoding.DecodeString(os.Getenv("TESTCASE"))
 	if err != nil {
-		fatalPrint(fmt.Sprintf("failed to normalize the golden changeset (%s): %s", originalGoldenChangeset, err.Error()))
+		fatalPrint(fmt.Sprintf("failed to decode golden changeset: %s", err.Error()))
+	}
+
+	goldenChangeset, err := normalizeJSON(originalGoldenChangeset)
+	if err != nil {
+		fatalPrint(fmt.Sprintf("failed to normalize the golden changeset (%s): %s", string(originalGoldenChangeset), err.Error()))
 	}
 
 	originalNewChangeset := mustReadFile(os.Args[3])

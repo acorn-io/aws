@@ -15,8 +15,6 @@ args: {
 	deletionProtection: false
 	// Do a dry run. Generates the changeset and calls hooks without creating anything.
 	dryRun: false
-	// Test case used for testing alongside a dry run. Feel free to ignore this.
-	testCase: ""
 }
 
 services: readwrite: {
@@ -108,7 +106,6 @@ jobs: {
 			ACORN_EXTERNAL_ID:            "@{acorn.externalID}"
 			CDK_RUNNER_DELETE_PROTECTION: "\(args.deletionProtection)"
 			DRY_RUN:                      "\(args.dryRun)"
-			TESTCASE:                     "\(args.testCase)"
 		}
 		events: ["create", "update", "delete"]
 		permissions: rules: [{
