@@ -7,8 +7,8 @@ containers: app: {
 	build: context: "."
 	ports: publish: ["8080/http"]
 	env: {
-		MEMCACHED_HOST: "@{service.memcached.data.address}"
-		MEMCACHED_PORT: "@{service.memcached.data.port}"
+		MEMCACHED_HOST:     "@{service.memcached.data.address}"
+		MEMCACHED_PORT:     "@{service.memcached.data.port}"
 		TRANSIT_ENCRYPTION: "@{service.memcached.data.transitEncryption}"
 	}
 }

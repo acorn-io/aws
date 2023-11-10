@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	CLOUDFORMATION_OUTPUT_FILE = "outputs.json"
-	ACORN_RENDER_EXECUTABLE    = "./scripts/service.sh"
+	CloudformationOutputFile = "outputs.json"
+	AcornRenderExecutable    = "./scripts/service.sh"
 )
 
 func applyCfnTemplateFile(inputFile, stackName string) error {
@@ -41,10 +41,10 @@ func applyCfnTemplateFile(inputFile, stackName string) error {
 		return err
 	}
 
-	if err := cloudformation.WriteOutputsToFile(client, stackName, CLOUDFORMATION_OUTPUT_FILE); err != nil {
+	if err := cloudformation.WriteOutputsToFile(client, stackName, CloudformationOutputFile); err != nil {
 		return err
 	}
-	return runServiceAcornRenderExec(ACORN_RENDER_EXECUTABLE)
+	return runServiceAcornRenderExec(AcornRenderExecutable)
 }
 
 func deleteStack(stackName string) error {

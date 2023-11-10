@@ -103,6 +103,11 @@ func StackOperationInProgress(c *Client, stackName string) (bool, string, error)
 }
 
 func (s *CfnStack) LogEvents(c *Client) {
+	if IsDryRun() {
+		// don't log events for dry runs
+		return
+	}
+
 	var startTime time.Time
 	termMessage := strings.Builder{}
 	for {

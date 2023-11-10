@@ -17,7 +17,8 @@ WORKDIR /app
 COPY ./cdk.json ./
 COPY ./scripts ./scripts
 COPY --from=utils ./scripts/ ./scripts/
-COPY --from=cdk-runner /cdk-runner .
+COPY --from=utils ./testman/differ ./hooks/dry-run
+COPY --from=utils ./cdk-runner/cdk-runner .
 COPY --from=build /src/s3/s3 .
 
 ENV GOGC="25"

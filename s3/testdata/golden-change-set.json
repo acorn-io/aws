@@ -1,0 +1,3 @@
+{
+  "": [{"HookInvocationCount":null,"ResourceChange":{"Action":"Add","ChangeSetId":null,"Details":[],"ModuleInfo":null,"PhysicalResourceId":null,"LogicalResourceId": "","Replacement":"","ResourceType":"AWS::S3::Bucket","Scope":[]},"Type":"Resource"}]
+}

@@ -5,14 +5,16 @@ icon:        "amazon-s3.svg"
 readme:      "./README.md"
 
 args: {
-	// Name to assign bucket during creation
+	// Name to assign bucket during creation.
 	bucketName: "MyBucket"
-	// Version the objects in the bucket
+	// Version the objects in the bucket.
 	versioned: true
-	// Key value pairs to apply to all resources
+	// Key value pairs to apply to all resources.
 	tags: {}
 	// Deletion protection, you must set to false in order for the S3 bucket to be deleted. Default value is false.
 	deletionProtection: false
+	// Do a dry run. Generates the changeset and calls hooks without creating anything.
+	dryRun: false
 }
 
 services: readwrite: {
@@ -103,6 +105,7 @@ jobs: {
 			ACORN_PROJECT:                "@{acorn.project}"
 			ACORN_EXTERNAL_ID:            "@{acorn.externalID}"
 			CDK_RUNNER_DELETE_PROTECTION: "\(args.deletionProtection)"
+			DRY_RUN:                      "\(args.dryRun)"
 		}
 		events: ["create", "update", "delete"]
 		permissions: rules: [{
@@ -116,6 +119,7 @@ jobs: {
 				"cloudformation:ExecuteChangeSet",
 				"cloudformation:PreviewStackUpdate",
 				"cloudformation:UpdateStack",
+				"cloudformation:GetTemplate",
 				"cloudformation:GetTemplateSummary",
 				"cloudformation:DeleteStack",
 				"cloudformation:GetTemplate",

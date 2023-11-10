@@ -20,7 +20,13 @@ const (
 	ReasonNoUpdates                = "No updates are to be performed."
 	CdkRunnerDeletionProtectionTag = "acorn.io/cdk-runner/deletion-protection"
 	DeletionProtectionEnvKey       = "CDK_RUNNER_DELETE_PROTECTION"
+	DryRunEnvKey                   = "DRY_RUN"
 )
+
+// IsDryRun returns true if the current run is a dry run
+func IsDryRun() bool {
+	return os.Getenv(DryRunEnvKey) == "true"
+}
 
 var (
 	acornTags = map[string]string{
@@ -55,7 +61,7 @@ func DeployStack(c *Client, stackName, template string) error {
 		return err
 	}
 
-	if err := os.WriteFile("/app/current-template.yaml", []byte(currentTemplate), 0644); err != nil {
+	if err := os.WriteFile("/app/current-template.yaml", currentTemplate, 0644); err != nil {
 		return err
 	}
 
@@ -68,8 +74,13 @@ func DeployStack(c *Client, stackName, template string) error {
 		return err
 	}
 
-	if err := hooks.PreChangeSetApplyHook(hooks.PreChangeSetApplyHookExecutable); err != nil {
+	if err := hooks.RunChangesetHook(hooks.PreChangeSetApplyHookExecutable); err != nil {
 		return err
+	}
+
+	if IsDryRun() {
+		// run the dry run hook and end execution here
+		return hooks.RunChangesetHook(hooks.DryRunHookExecutable)
 	}
 
 	stack.Refresh(c)
