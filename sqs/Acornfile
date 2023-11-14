@@ -94,6 +94,7 @@ jobs: apply: {
 			"cloudformation:UpdateStack",
 			"cloudformation:GetTemplateSummary",
 			"cloudformation:DeleteStack",
+			"cloudformation:GetTemplate",
 			"sqs:*",
 		]
 		resources: ["*"]
