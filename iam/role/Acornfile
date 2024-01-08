@@ -3,6 +3,8 @@ description: "AWS Identity and Access Management (IAM) Role"
 info:        localData.info
 
 args: {
+	// Name for the CloudFormation stack. The default is auto-generated.
+	stackName: ""
 	// Name of the Role to create. The default is auto-generated.
 	roleName: ""
 	// The ARN of the principal that will be allowed to assume the role. Required.
@@ -43,7 +45,9 @@ jobs: apply: {
 		ACORN_ACCOUNT:       "@{acorn.account}"
 		ACORN_NAME:          "@{acorn.name}"
 		ACORN_PROJECT:       "@{acorn.project}"
-		ACORN_EXTERNAL_ID:   "@{acorn.externalID}"
+
+		// cdk-runner requires the stack name to be present as the environment variable ACORN_EXTERNAL_ID
+		ACORN_EXTERNAL_ID: std.ifelse(args.stackName == "", "@{acorn.externalId}", "@{args.stackName}")
 	}
 	events: ["create", "update", "delete"]
 	permissions: rules: [{
